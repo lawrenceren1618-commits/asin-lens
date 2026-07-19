@@ -86,13 +86,41 @@ async function collectOneAsin(
   }
 
   try {
-    const raw = await callSifTool("asin_detail", {
+    const raw = await callSellerSpriteTool("traffic_keyword", {
       asin: asin.asin,
       marketplace: asin.market,
     });
-    sources.push({ source: "Sif", tool: "asin_detail", raw });
+    sources.push({ source: "SellerSprite", tool: "traffic_keyword", raw });
+  } catch {
+    // optional enrichment
+  }
+
+  try {
+    const raw = await callSifTool("market_get_asin_keyword_signals", {
+      asin: asin.asin,
+      marketplace: asin.market,
+    });
+    sources.push({
+      source: "Sif",
+      tool: "market_get_asin_keyword_signals",
+      raw,
+    });
   } catch {
     // Sif optional — SellerSprite alone may still verify.
+  }
+
+  try {
+    const raw = await callSifTool("ops_get_listing_traffic_overview", {
+      asin: asin.asin,
+      marketplace: asin.market,
+    });
+    sources.push({
+      source: "Sif",
+      tool: "ops_get_listing_traffic_overview",
+      raw,
+    });
+  } catch {
+    // optional
   }
 
   // ingest → clean (by priority) → verify → only then write DB

@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { firstText, isObject } from "./normalize";
+import {
+  firstText,
+  isObject,
+  normalizeToolResult,
+  type SourceResult,
+} from "./normalize";
 
 /** 词日均流量辅助阈值：低于此值则转化/竞价/花费标为无结果 */
 export const KEYWORD_DAILY_TRAFFIC_MIN = 50;
@@ -63,6 +68,7 @@ function listKeywordArrays(data: Record<string, unknown>): unknown[] {
     "trafficKeywords",
     "keywordList",
     "trafficSources",
+    "items",
     "关键词",
     "流量词",
     "流量来源",
@@ -70,6 +76,13 @@ function listKeywordArrays(data: Record<string, unknown>): unknown[] {
   for (const key of keys) {
     const value = data[key];
     if (Array.isArray(value) && value.length > 0) return value;
+  }
+  if (isObject(data.primary_signals)) {
+    const rows: unknown[] = [];
+    for (const value of Object.values(data.primary_signals)) {
+      if (Array.isArray(value)) rows.push(...value);
+    }
+    if (rows.length > 0) return rows;
   }
   return [];
 }
@@ -104,11 +117,22 @@ function parseKeywordItem(
   ]);
   if (!keyword) return null;
 
+  const cvrRaw = toNumber(
+    item.cvr ??
+      item.conversionRate ??
+      item.purchaseRate ??
+      item.转化率 ??
+      item.convRate ??
+      item.cr,
+  );
+
   return {
     keyword: keyword.trim(),
     share: normalizeShare(
       item.share ??
         item.trafficShare ??
+        item.traffic_share ??
+        item.trafficPercentage ??
         item.占比 ??
         item.trafficPercent ??
         item.percent ??
@@ -118,17 +142,12 @@ function parseKeywordItem(
       item.dailyTraffic ??
         item.traffic ??
         item.avgTraffic ??
-        item.日均流量 ??
         item.searches ??
+        item.calculatedWeeklySearches ??
+        item.日均流量 ??
         item.volume,
     ),
-    cvr: toNumber(
-      item.cvr ??
-        item.conversionRate ??
-        item.转化率 ??
-        item.convRate ??
-        item.cr,
-    ),
+    cvr: source === "Sif" ? cvrRaw : null,
     bid: toNumber(
       item.bid ?? item.竞价 ?? item.cpc ?? item.suggestedBid ?? item.bidPrice,
     ),
@@ -139,58 +158,77 @@ function parseKeywordItem(
   };
 }
 
-function extractFromSource(
-  data: Record<string, unknown> | undefined,
-  source: "Sif" | "SellerSprite",
-): KeywordTrafficRow[] {
-  if (!data) return [];
-  return listKeywordArrays(data)
-    .map((item) => parseKeywordItem(item, source))
-    .filter((row): row is KeywordTrafficRow => row !== null)
-    .slice(0, 30);
-}
-
 /**
- * Sif 优先合并词表。
- * - share / dailyTraffic / bid / spend：Sif 优先，SellerSprite 补缺
- * - cvr：只用 Sif（卖家精灵转化不进规范指标）
+ * 从各 MCP SourceResult 抽取词级流量（避免 Object.assign 压扁多行）。
+ * Sif 优先；CVR 仅 Sif。
  */
-export function mergeKeywordTraffic(
-  bySource: Record<string, Record<string, unknown>>,
+export function collectKeywordTrafficFromSources(
+  sources: SourceResult[],
 ): KeywordTrafficRow[] {
-  const sifRows = extractFromSource(bySource.Sif, "Sif");
-  const ssRows = extractFromSource(bySource.SellerSprite, "SellerSprite");
-
   const map = new Map<string, KeywordTrafficRow>();
 
-  for (const row of ssRows) {
-    map.set(row.keyword.toLowerCase(), {
-      ...row,
-      cvr: null, // 转化率不以卖家精灵为准
-    });
-  }
-
-  for (const row of sifRows) {
-    const key = row.keyword.toLowerCase();
-    const prev = map.get(key);
-    if (!prev) {
-      map.set(key, { ...row });
-      continue;
+  for (const source of sources) {
+    const items = normalizeToolResult(source);
+    for (const item of items) {
+      const nested = listKeywordArrays(item.data);
+      const candidates = nested.length > 0 ? nested : [item.data];
+      for (const candidate of candidates) {
+        const row = parseKeywordItem(candidate, source.source);
+        if (!row) continue;
+        const key = row.keyword.toLowerCase();
+        const prev = map.get(key);
+        if (!prev) {
+          map.set(key, row);
+          continue;
+        }
+        if (source.source === "Sif") {
+          map.set(key, {
+            keyword: row.keyword,
+            share: row.share ?? prev.share,
+            dailyTraffic: row.dailyTraffic ?? prev.dailyTraffic,
+            cvr: row.cvr,
+            bid: row.bid ?? prev.bid,
+            spend: row.spend ?? prev.spend,
+            source: "Sif",
+          });
+        } else {
+          map.set(key, {
+            ...prev,
+            share: prev.share ?? row.share,
+            dailyTraffic: prev.dailyTraffic ?? row.dailyTraffic,
+            bid: prev.bid ?? row.bid,
+            spend: prev.spend ?? row.spend,
+          });
+        }
+      }
     }
-    map.set(key, {
-      keyword: row.keyword,
-      share: row.share ?? prev.share,
-      dailyTraffic: row.dailyTraffic ?? prev.dailyTraffic,
-      cvr: row.cvr, // 仅 Sif；无则保持 null
-      bid: row.bid ?? prev.bid,
-      spend: row.spend ?? prev.spend,
-      source: "Sif",
-    });
   }
 
   const rows = [...map.values()];
   rows.sort((a, b) => (b.share ?? 0) - (a.share ?? 0));
   return rows.slice(0, 20);
+}
+
+/** 兼容旧调用：从已压扁的 bySource 桶提取（不如 sources 版完整） */
+export function mergeKeywordTraffic(
+  bySource: Record<string, Record<string, unknown>>,
+): KeywordTrafficRow[] {
+  const fakeSources: SourceResult[] = [];
+  if (bySource.SellerSprite) {
+    fakeSources.push({
+      source: "SellerSprite",
+      tool: "merged",
+      raw: bySource.SellerSprite,
+    });
+  }
+  if (bySource.Sif) {
+    fakeSources.push({
+      source: "Sif",
+      tool: "merged",
+      raw: bySource.Sif,
+    });
+  }
+  return collectKeywordTrafficFromSources(fakeSources);
 }
 
 function availabilityFromSifFirst(

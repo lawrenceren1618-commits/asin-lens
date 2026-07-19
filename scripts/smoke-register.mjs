@@ -1,4 +1,4 @@
 import { register } from "node:module";
 import { pathToFileURL } from "node:url";
 
-register("./smoke-hooks.mjs", pathToFileURL("./"));
+register("./smoke-hooks.mjs", pathToFileURL("./scripts/"));

@@ -38,9 +38,6 @@ async function main() {
   const { prepareIndustryOptExport } = await import(
     "../src/lib/research/industry-opt-format.ts"
   );
-  const { normalizeToolResult, safeJson } = await import(
-    "../src/lib/research/normalize.ts"
-  );
 
   const ssUrl =
     process.env.SELLERSPRITE_MCP_URL ?? "https://mcp.sellersprite.com/mcp";
@@ -57,54 +54,43 @@ async function main() {
   async function fetchSources(asin) {
     const sources = [];
     if (ssKey) {
-      try {
-        const raw = await callTool(ssUrl, ssKey, {}, "asin_detail", {
-          asin,
-          marketplace: MARKET,
-        });
-        sources.push({ source: "SellerSprite", tool: "asin_detail", raw });
-        const items = normalizeToolResult(sources[0]);
-        console.log(
-          `${asin} SS keys:`,
-          items.flatMap((i) => Object.keys(i.data)).slice(0, 20).join(", ") ||
-            "(none)",
-        );
-      } catch (error) {
-        console.log(
-          `${asin} SS FAIL:`,
-          error instanceof Error ? error.message.slice(0, 180) : error,
-        );
-        sources.push({
-          source: "SellerSprite",
-          tool: "asin_detail",
-          raw: {
-            error: error instanceof Error ? error.message : String(error),
-          },
-        });
+      for (const tool of ["asin_detail", "traffic_keyword"]) {
+        try {
+          const raw = await callTool(ssUrl, ssKey, {}, tool, {
+            asin,
+            marketplace: MARKET,
+          });
+          sources.push({ source: "SellerSprite", tool, raw });
+          console.log(`${asin} SS ${tool}: ok`);
+        } catch (error) {
+          console.log(
+            `${asin} SS ${tool} FAIL:`,
+            error instanceof Error ? error.message.slice(0, 120) : error,
+          );
+        }
       }
     }
     if (sifKey) {
-      try {
-        const raw = await callTool(
-          sifUrl,
-          sifKey,
-          { [sifHeader]: `${sifScheme}${sifKey}` },
-          "asin_detail",
-          { asin, marketplace: MARKET },
-        );
-        sources.push({ source: "Sif", tool: "asin_detail", raw });
-        const items = normalizeToolResult(sources.at(-1));
-        console.log(
-          `${asin} Sif keys:`,
-          items.flatMap((i) => Object.keys(i.data)).slice(0, 20).join(", ") ||
-            "(none)",
-        );
-        console.log(`${asin} Sif preview:`, safeJson(raw, 450));
-      } catch (error) {
-        console.log(
-          `${asin} Sif FAIL:`,
-          error instanceof Error ? error.message.slice(0, 180) : error,
-        );
+      for (const tool of [
+        "market_get_asin_keyword_signals",
+        "ops_get_listing_traffic_overview",
+      ]) {
+        try {
+          const raw = await callTool(
+            sifUrl,
+            sifKey,
+            { [sifHeader]: `${sifScheme}${sifKey}` },
+            tool,
+            { asin, marketplace: MARKET },
+          );
+          sources.push({ source: "Sif", tool, raw });
+          console.log(`${asin} Sif ${tool}: ok`);
+        } catch (error) {
+          console.log(
+            `${asin} Sif ${tool} FAIL:`,
+            error instanceof Error ? error.message.slice(0, 120) : error,
+          );
+        }
       }
     }
     return sources;

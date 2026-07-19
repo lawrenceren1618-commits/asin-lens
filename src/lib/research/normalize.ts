@@ -54,10 +54,32 @@ function findItems(payload: unknown): unknown[] {
   if (Array.isArray(payload)) return payload;
   if (!isObject(payload)) return [payload];
 
-  for (const key of ["items", "data", "results", "records", "list"]) {
-    const candidate = payload[key];
-    if (Array.isArray(candidate)) return candidate;
+  // SellerSprite traffic_keyword: { data: { items: [...] } }
+  if (isObject(payload.data) && Array.isArray(payload.data.items)) {
+    return payload.data.items;
   }
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.items)) return payload.items;
+
+  // Sif keyword signals: primary_signals.{declining,rising,...}[]
+  if (isObject(payload.primary_signals)) {
+    const rows: unknown[] = [];
+    for (const value of Object.values(payload.primary_signals)) {
+      if (Array.isArray(value)) rows.push(...value);
+    }
+    if (rows.length > 0) return rows;
+  }
+
+  // asin_detail envelope: { code, message, data: { title, price, ... } }
+  if (isObject(payload.data)) {
+    return [{ ...payload, ...payload.data }];
+  }
+
+  for (const key of ["results", "records", "list", "keywords"]) {
+    const candidate = payload[key];
+    if (Array.isArray(candidate) && candidate.length > 0) return candidate;
+  }
+
   return [payload];
 }
 

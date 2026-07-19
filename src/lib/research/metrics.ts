@@ -8,8 +8,8 @@ import {
   type SourceResult,
 } from "./normalize";
 import {
+  collectKeywordTrafficFromSources,
   keywordTrafficRowSchema,
-  mergeKeywordTraffic,
 } from "./keyword-traffic";
 import {
   DEFAULT_SOURCE_PRIORITY,
@@ -86,8 +86,18 @@ function buildPerSourceMaps(sources: SourceResult[]): {
 
   for (const source of sources) {
     const items = normalizeToolResult(source);
-    const bucket: Record<string, unknown> = {};
+    const bucket: Record<string, unknown> = bySource[source.source] ?? {};
     for (const item of items) {
+      // Keyword rows must not overwrite product fields (title/price/…).
+      const hasKeyword = Boolean(
+        firstText(item.data, ["keyword", "关键词", "searchTerm"]),
+      );
+      const hasProduct = Boolean(
+        firstText(item.data, ["title", "productTitle", "标题", "name"]) ||
+          item.data.price !== undefined ||
+          item.data.bsrRank !== undefined,
+      );
+      if (hasKeyword && !hasProduct) continue;
       Object.assign(bucket, item.data);
     }
     bySource[source.source] = bucket;
@@ -152,7 +162,7 @@ export function cleanToMetrics(
 
   const rankRaw = toNumber(
     pickFromSources(bySource, fieldOrder(priority, "rank"), (data) =>
-      data.rank ?? data.bsr ?? data.排名 ?? data.BSR,
+      data.rank ?? data.bsr ?? data.bsrRank ?? data.排名 ?? data.BSR,
     ),
   );
 
@@ -174,7 +184,7 @@ export function cleanToMetrics(
       return list.length > 0 ? list : null;
     }) ?? [];
 
-  const keywordTraffic = mergeKeywordTraffic(bySource);
+  const keywordTraffic = collectKeywordTrafficFromSources(sources);
   const topKeywordsFromTraffic = keywordTraffic.map((row) => row.keyword);
   const topKeywords = Array.isArray(keywordSource)
     ? keywordSource.filter((item): item is string => typeof item === "string")
