@@ -18,12 +18,12 @@
   --fire: oklch(0.72 0.12 55);
   --camp-image: url("/images/camp-horizon.png");
   --custom-full-bg: none;
-  /* Upper band: clear light, not milky fog */
-  --sky-top: oklch(0.86 0.05 75);
-  --sky-mid: oklch(0.76 0.06 60);
-  --sky-low: oklch(0.5 0.05 45);
-  --bloom: oklch(0.9 0.1 70 / 0.55);
-  --shade: oklch(0.45 0.04 40 / 0.14);
+  /* Upper band: clear open sky — high L, no milky gray veil */
+  --sky-top: oklch(0.96 0.03 230);
+  --sky-mid: oklch(0.88 0.05 85);
+  --sky-low: oklch(0.52 0.05 50);
+  --bloom: oklch(0.95 0.06 80 / 0.28);
+  --shade: oklch(0.45 0.04 40 / 0.12);
   --title-shadow: none;
   --text-scrim: oklch(0.99 0.01 75 / 0.55);
   --brand: oklch(0.28 0.05 45);
@@ -53,38 +53,36 @@
   border-color: color-mix(in oklch, var(--input) 65%, transparent);
 }
 
-/* —— Day parts: clear sunrise / daylight; no milky fog on top —— */
+/* —— Day parts: clear sky on top; warmth only mid/low (no gray fog) —— */
 html[data-day="dawn"] {
-  --sky-top: oklch(0.86 0.06 75);
-  --sky-mid: oklch(0.78 0.08 60);
-  --sky-low: oklch(0.48 0.07 45);
-  --bloom: oklch(0.92 0.12 70 / 0.62);
-  --shade: oklch(0.5 0.06 45 / 0.16);
+  --sky-top: oklch(0.97 0.025 225);
+  --sky-mid: oklch(0.9 0.07 75);
+  --sky-low: oklch(0.5 0.08 50);
+  --bloom: oklch(0.96 0.08 70 / 0.32);
+  --shade: oklch(0.5 0.06 45 / 0.14);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.28 0.05 45);
   --primary: oklch(0.48 0.12 48);
 }
 
 html[data-day="day"] {
-  /* 参照朝阳：上半区清朗，略偏日中暖白，不压暗、不加雾 */
-  --sky-top: oklch(0.9 0.045 85);
-  --sky-mid: oklch(0.84 0.055 70);
+  --sky-top: oklch(0.97 0.035 235);
+  --sky-mid: oklch(0.91 0.04 95);
   --sky-low: oklch(0.58 0.05 55);
-  --bloom: oklch(0.94 0.08 75 / 0.48);
-  --shade: oklch(0.55 0.04 50 / 0.12);
-  --background: oklch(0.9 0.025 80);
+  --bloom: oklch(0.97 0.04 90 / 0.22);
+  --shade: oklch(0.55 0.04 50 / 0.1);
+  --background: oklch(0.94 0.02 95);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.27 0.045 50);
   --primary: oklch(0.47 0.11 48);
 }
 
 html[data-day="dusk"] {
-  /* 参照朝阳：同图氛围，暮色略沉但上沿仍透亮 */
-  --sky-top: oklch(0.84 0.065 65);
-  --sky-mid: oklch(0.72 0.08 50);
+  --sky-top: oklch(0.94 0.035 230);
+  --sky-mid: oklch(0.82 0.07 55);
   --sky-low: oklch(0.44 0.07 35);
-  --bloom: oklch(0.9 0.11 60 / 0.55);
-  --shade: oklch(0.4 0.06 35 / 0.16);
+  --bloom: oklch(0.93 0.08 60 / 0.3);
+  --shade: oklch(0.4 0.06 35 / 0.14);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.26 0.05 40);
   --primary: oklch(0.46 0.13 40);
@@ -143,14 +141,15 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--foreground);
   background-color: var(--background);
-  /* No fog veil — sunrise stays visible; mood lives mid/low */
+  /* Clear sky holds the upper half; bloom/shade stay soft and low */
   background-image:
-    radial-gradient(ellipse 55% 42% at 78% 12%, var(--bloom), transparent 62%),
-    radial-gradient(ellipse 40% 34% at 16% 90%, var(--shade), transparent 55%),
+    radial-gradient(ellipse 42% 28% at 82% 18%, var(--bloom), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 14% 92%, var(--shade), transparent 58%),
     linear-gradient(
       180deg,
       var(--sky-top) 0%,
-      var(--sky-mid) 48%,
+      var(--sky-top) 38%,
+      var(--sky-mid) 68%,
       var(--sky-low) 100%
     );
   background-attachment: fixed;
@@ -160,8 +159,8 @@ html[data-bg-source="custom"] body {
   background-image:
     linear-gradient(
       180deg,
-      oklch(0.98 0.015 85 / 0.28) 0%,
-      transparent 36%
+      oklch(0.98 0.02 230 / 0.12) 0%,
+      transparent 40%
     ),
     var(--custom-full-bg);
   background-size: auto, cover;
