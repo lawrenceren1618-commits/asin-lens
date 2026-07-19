@@ -1,11 +1,22 @@
 ---
-description: 数据库与部署相关时对齐基础设施知识库
-globs: src/lib/db/**/*.ts,drizzle/**/*.sql,vercel.json,.env.example
+description: 数据库、迁移与部署；pooler 与 admin migrate
+globs: src/lib/db/**/*.ts,drizzle/**/*.sql,vercel.json,.env.example,scripts/apply-schema.mjs,src/app/api/admin/**/*.ts
 alwaysApply: false
 ---
 
 # 基础设施
 
 动手前阅读：`docs/kb/05-infra.md`
+
+## Schema
+
+- 增量：`drizzle/0001_own_competitor.sql`（role、manual_cvr_60d、keyword_traffic、industry_opt_reports）
+- `scripts/apply-schema.mjs` 按文件名顺序应用全部 `.sql`
+
+## 连接
+
+- 本机直连 `db.*.supabase.co:5432` 常遇 IPv6 超时
+- `DATABASE_URL` 用 Supabase **Transaction pooler**（host 含 `pooler`，端口 6543，用户 `postgres.<ref>`）
+- 部署后可用 `POST /api/admin/migrate`（需 ADMIN_TOKEN）打增量
 
 改 Schema / SQL / 全局 env：**先行动计划，等「确认执行」**。禁止擅自 push。

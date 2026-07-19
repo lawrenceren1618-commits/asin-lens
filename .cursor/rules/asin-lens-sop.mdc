@@ -5,36 +5,31 @@ alwaysApply: true
 
 # ASIN Lens 行为守则
 
+## 产品中心
+
+- **我的 ASIN 可选**（可多变体）：无 own → 仅行业竞品报告；有 own → 行业报告 + 可优化项
+- **异动日报** 与 **行业/优化报告** 分离，禁止混进同一契约
+- 外部 MCP 能力以 `docs/vendor/**` 官方 schema 为准，禁止臆造字段
+
 ## 四大区（改代码前先定位）
 
-1. **前端** `src/components/**`, `src/app/**/page.tsx` — UI/交互
-2. **后端** `src/lib/research/**`, `src/app/api/**`, `src/lib/notify/**` — 采集/清洗/报告/推送
-3. **基础设施** `src/lib/db/**`, `drizzle/**`, `vercel.json`, `.env*` — Schema/部署/密钥
-4. **交叉契约** `docs/kb/01-contracts.md` + types — 改模块前必须先对齐已有接口，禁止凭空重写
+1. **前端** `src/components/**`, `src/app/**/page.tsx`
+2. **后端** `src/lib/research/**`, `src/app/api/**`, `src/lib/notify/**`
+3. **基础设施** `src/lib/db/**`, `drizzle/**`, `vercel.json`, `.env*`
+4. **交叉契约** `docs/kb/01-contracts.md` + types — 禁止凭空重写
 
-业务详情查：`docs/kb/INDEX.md`（模块树）。针对性开发时只加载对应 kb 文件。
+业务详情：`docs/kb/INDEX.md`。针对性开发只加载对应 kb。
 
-## SOP（自顶向下，确认后再写核心代码）
+## SOP
 
-1. 全局思路与全景  
-2. 拆成前端/后端/底层小模块  
-3. 定义模块间数据结构与接口  
-4. **等用户确认后**再单点实现/优化  
+1. 全局思路 → 2. 拆模块 → 3. 定接口 → 4. **确认后再写核心代码**
 
-## 最高优先级：确认机制
+## 确认机制（最高优先级）
 
-涉及 **Schema/SQL、全局配置、跨模块接口** 的写入/更换/删除：
-
-- 先输出「行动计划」（改哪些文件、为什么、风险）
-- **禁止**未确认就大面积重写
-- 等用户回复 **「确认执行」** 后再改
+涉及 Schema/SQL、全局配置、跨模块接口：先行动计划 → 等 **「确认执行」** → 再改。
 
 ## Git
 
-- 单点通过后提醒本地 `commit` 作缓存点  
-- **禁止**擅自 `git push` / 发版  
-- 仅当用户明确说「发布新版本并推送」：先 Changelog + 版本名，确认后再 push  
-
-## 分支约定
-
-针对性开发用分支：`mod/<模块>`，与 `docs/kb/` 同名模块对齐（见 INDEX）。
+- 单点通过后提醒本地 commit
+- **禁止**擅自 push / 发版；仅用户明确要求时再 push
+- 分支：`mod/<模块>`，与 `docs/kb/` 对齐

@@ -6,6 +6,7 @@
 |----|------|------|
 | 全局守则 | 行为约束，每次对话自动带上 | `.cursor/rules/asin-lens-sop.mdc` |
 | 模块知识库 | 业务细节，按需阅读 | `docs/kb/*.md` |
+| Vendor schema | 外部 MCP 能力边界 | `docs/vendor/**` |
 | 文件规则 | 打开相关代码时提醒读 kb | `asin-lens-*.mdc` globs |
 | 页面模块树 | 不忘文件名与分支名 | 右侧 `ModuleMap` |
 

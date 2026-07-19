@@ -8,10 +8,22 @@ asin-lens/
 ├── 01-contracts.md     ← 交叉契约（优先读）
 ├── 02-frontend.md      ← UI / AppShell / 规则页
 ├── 03-collect.md       ← 采集 · 清洗 · 核对 · 入库
-├── 04-report.md        ← 日报 · 导出 · 通知
+├── 04-report.md        ← 日报 · 行业优化报告 · 通知
 ├── 05-infra.md         ← DB · Cron · Env · 部署
-└── 06-git-workflow.md  ← 分支命名 · commit · 发版
+├── 06-git-workflow.md  ← 分支命名 · commit · 发版
+└── ../vendor/sif-mcp/  ← Sif MCP 官方 tool schema
 ```
+
+## Cursor 规则 ↔ 知识库
+
+| 规则文件 | always / globs | 对齐 |
+|----------|----------------|------|
+| `asin-lens-sop.mdc` | always | 产品中心 + SOP |
+| `asin-lens-contracts.mdc` | contracts/types | 01-contracts |
+| `asin-lens-collect-report.mdc` | research/api | 03 + 04 |
+| `asin-lens-frontend.mdc` | components/pages | 02-frontend |
+| `asin-lens-infra.mdc` | db/drizzle | 05-infra |
+| `asin-lens-vendor.mdc` | vendor + mcp | sif-mcp-tool-schema |
 
 ## 建议 Git 分支 ↔ 知识库
 

@@ -1,0 +1,26 @@
+---
+description: 交叉契约：ASIN 角色、keywordTraffic、双报告类型
+globs: docs/kb/01-contracts.md,src/lib/db/schema.ts,src/lib/research/metrics.ts,src/lib/research/keyword-traffic.ts,src/lib/research/*format*.ts,src/lib/research/industry-opt*.ts
+alwaysApply: false
+---
+
+# 契约相关
+
+动手前阅读：`docs/kb/01-contracts.md`
+
+## ASIN 角色
+
+- `asins.role`：`own` | `competitor`（默认 competitor；旧数据视为竞品）
+- `manual_cvr_60d`：仅 own；手填近 60 天整体转化率基准
+
+## 词级指标
+
+- `keywordTraffic`：份额主靠 Sif `click_share`/`traffic_share`；日均/bid 可 SS 补缺
+- **Sif 无 ASIN×词转化率** → `no_result`；勿把 SS `purchaseRate` 写成 Sif CVR
+- 前三词份额 ≥70% → concentrated；否则 dispersed（只下结论）
+- 词日均 &lt;50 → 转化/竞价/花费辅助判 `no_result`
+
+## 报告
+
+- `ReportCanonical`：异动日报（价/流量阈值）
+- `IndustryOptCanonical`：行业 / 行业+优化（另表 `industry_opt_reports`）

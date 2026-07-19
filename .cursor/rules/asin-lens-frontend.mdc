@@ -1,5 +1,5 @@
 ---
-description: 前端与壳层改动时对齐 UI 知识库
+description: 前端与壳层：我的/竞品 ASIN 与双报告入口
 globs: src/components/**/*.tsx,src/app/**/page.tsx,src/app/globals.css
 alwaysApply: false
 ---
@@ -8,6 +8,15 @@ alwaysApply: false
 
 动手前阅读：`docs/kb/02-frontend.md`
 
-- 业务核心是调研记录与脉络，氛围/花语只做点缀
-- 上半区保持清朗；报错用清单便于逐项解决
-- 右侧模块树（`ModuleMap`）提醒整体结构，勿删
+## 项目详情
+
+- ASIN 分两区：**我的**（可选，可多变体）与 **竞品**（默认）
+- 可从竞品「标为我的」；CSV `role`：`own` / `competitor`
+- 我的 ASIN：手填 60 天转化基准 + 小字提示亚马逊后台业务报告路径
+- 独立按钮「生成行业/优化报告」（与异动日报分区展示）
+
+## UI 原则
+
+- 业务核心是调研与优化脉络；氛围/花语只做点缀
+- 上半区清朗；报错用 `IssueChecklist`
+- 保留右侧 `ModuleMap`

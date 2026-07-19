@@ -1,0 +1,24 @@
+---
+description: 外部 MCP 官方 schema 为能力真源（Sif 等）
+globs: docs/vendor/**/*,src/lib/mcp/**/*.ts,src/lib/research/collect.ts,src/lib/research/keyword-traffic.ts,src/lib/research/normalize.ts
+alwaysApply: false
+---
+
+# Vendor MCP
+
+## 真源
+
+- Sif：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`
+- 改 Sif 工具名、入参、返回字段映射前 **必须先读 schema**
+- 禁止调用 schema 中不存在的工具（如 `asin_detail`）
+- 禁止把 schema 未声明的指标（如 ASIN×词 CVR）写成「Sif 已返回」
+
+## 常用对齐（摘要）
+
+| 需求 | 工具 |
+|------|------|
+| 主词/份额 | `market_get_asin_keyword_signals` |
+| 流量来源 | `ops_get_listing_traffic_overview` |
+| 词搜索量（市场） | `market_get_keyword_history`（非 ASIN 词 CVR） |
+
+站点参数名：**`country`**（不是 marketplace）。

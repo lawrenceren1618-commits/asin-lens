@@ -1,15 +1,27 @@
 ---
-description: 打开业务文件时加载对应知识库模块
-globs: src/lib/research/**/*.ts,src/app/api/collect/**/*.ts,src/app/api/cron/**/*.ts,src/app/api/reports/**/*.ts
+description: 采集与报告管线；打开业务文件时加载对应 kb
+globs: src/lib/research/**/*.ts,src/app/api/collect/**/*.ts,src/app/api/cron/**/*.ts,src/app/api/reports/**/*.ts,src/app/api/projects/**/industry-opt-reports/**/*.ts,src/lib/mcp/**/*.ts
 alwaysApply: false
 ---
 
-# 采集 / 报告相关
+# 采集 / 报告
 
-动手前阅读：
+动手前阅读：`docs/kb/01-contracts.md` + `03-collect.md` + `04-report.md`  
+Sif 边界：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`
 
-- `docs/kb/01-contracts.md`（契约优先）
-- `docs/kb/03-collect.md`
-- `docs/kb/04-report.md`
+## 单 ASIN 采集链
 
-遵守清洗→核对→入库；导出前核对→再格式化。源优先级见 `source-priority` 与 `/rules`。
+1. SS `asin_detail`（`marketplace`）→ 标题/价/BSR  
+2. SS `traffic_keyword` → searches / bid  
+3. Sif `market_get_asin_keyword_signals`（`country`，`time_type=lately`，`time_value=7`）  
+4. Sif `ops_get_listing_traffic_overview`（`country`，`timePieceType=latelyDay`）  
+5. clean → verify → 写 `asin_snapshots`（含 `keyword_traffic`）
+
+Sif **无** `asin_detail`。入参用 **`country`**，勿传 `marketplace`。
+
+## 报告
+
+- 异动日报：Cron / `generateDailyReports`  
+- 行业/优化：`POST .../industry-opt-reports`；分散型不深挖；CVR/竞价/花费按契约 no_result  
+
+遵守：清洗→核对→入库；导出前核对→再格式化。
