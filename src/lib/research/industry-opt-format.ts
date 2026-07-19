@@ -4,6 +4,10 @@ import {
   formatMetricAvailability,
   TOP3_CONCENTRATION_THRESHOLD,
 } from "./keyword-traffic";
+import {
+  formatTrafficSourceLine,
+  trafficSourceSchema,
+} from "./traffic-source";
 
 const metricAvailabilitySchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), value: z.number().finite() }),
@@ -31,6 +35,7 @@ const asinIndustrySliceSchema = z.object({
   rank: z.number().int().nullable(),
   trafficPattern: z.enum(["concentrated", "dispersed", "unknown"]),
   top3ShareSum: z.number().finite().nullable(),
+  trafficSource: trafficSourceSchema,
   topKeywords: z.array(keywordInsightSchema),
 });
 
@@ -40,6 +45,7 @@ const ownOptimizationSchema = z.object({
   manualCvr60d: z.number().finite().nullable(),
   trafficPattern: z.enum(["concentrated", "dispersed", "unknown"]),
   trafficNote: z.string(),
+  trafficSource: trafficSourceSchema,
   pricingNote: z.string(),
   copyNote: z.string(),
   keywordInsights: z.array(keywordInsightSchema),
@@ -141,6 +147,7 @@ export function formatIndustryOptMd(report: IndustryOptCanonical): string {
       `- 标题：${item.title || "—"}`,
       `- 价格 / 流量 / 销量 / 排名：${item.price ?? "—"} / ${item.traffic ?? "—"} / ${item.sales ?? "—"} / ${item.rank ?? "—"}`,
       `- 流量结构：${patternLabel(item.trafficPattern)}${item.top3ShareSum !== null ? `（前三合计 ${pct(item.top3ShareSum)}）` : ""}`,
+      `- 流量来源：${formatTrafficSourceLine(item.trafficSource)}`,
     );
     if (item.trafficPattern === "dispersed") {
       lines.push("- 结论：这是分散型流量（不在此报告深挖）");
@@ -160,17 +167,26 @@ export function formatIndustryOptMd(report: IndustryOptCanonical): string {
   if (report.mode === "industry_plus_own" && report.ownOptimizations) {
     lines.push("## 我方可优化", "");
     for (const own of report.ownOptimizations) {
+      const cvrBaseline =
+        own.manualCvr60d === null
+          ? "未提供（词级转化无源时无法对照）"
+          : `${own.manualCvr60d}%（整体基准；Sif 无 ASIN×词转化，词行仅作旁注对照）`;
       lines.push(
         `### 我的 ASIN ${own.asin} (${own.market})`,
-        `- 近 60 天整体转化率基准（手填）：${own.manualCvr60d ?? "未提供"}`,
+        `- 近 60 天整体转化率基准（手填）：${cvrBaseline}`,
         `- 流量：${own.trafficNote}`,
+        `- 流量来源：${formatTrafficSourceLine(own.trafficSource)}`,
         `- 定价：${own.pricingNote}`,
         `- 文案：${own.copyNote}`,
-        "- 主要流量词（Sif 转化参考 / 竞价花费无源则无结果）：",
+        "- 主要流量词（词转化无源则无结果；有手填基准时可对照整体 CVR）：",
       );
       for (const kw of own.keywordInsights.slice(0, 8)) {
+        const cvrNote =
+          kw.cvr.status === "no_result" && own.manualCvr60d !== null
+            ? `${formatMetricAvailability(kw.cvr)}；对照手填整体 ${own.manualCvr60d}%`
+            : formatMetricAvailability(kw.cvr);
         lines.push(
-          `  - ${kw.keyword} · 份额 ${pct(kw.share)} · 日均 ${kw.dailyTraffic ?? "—"} · 转化 ${formatMetricAvailability(kw.cvr)} · 竞价 ${formatMetricAvailability(kw.bid)} · 花费 ${formatMetricAvailability(kw.spend)}`,
+          `  - ${kw.keyword} · 份额 ${pct(kw.share)} · 日均 ${kw.dailyTraffic ?? "—"} · 转化 ${cvrNote} · 竞价 ${formatMetricAvailability(kw.bid)} · 花费 ${formatMetricAvailability(kw.spend)}`,
         );
       }
       lines.push("");

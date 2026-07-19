@@ -5,6 +5,22 @@ alwaysApply: true
 
 # ASIN Lens 行为守则
 
+## 模块树（一眼看 · 仅开发自用）
+
+> **只给写代码的人看进度 / 对号入座用。**  
+> 禁止挂到客户前端、禁止当产品功能展示。对照存在于本规则 + `AGENTS.md` + `docs/kb/INDEX.md`。
+
+| 区块 | kb | 职责 | 开聊声明 |
+|------|-----|------|----------|
+| **contracts** | `01-contracts` | 角色 own/竞品 · keywordTraffic · 双报告契约 | `mod/contracts` |
+| **frontend** | `02-frontend` | 我的/竞品 UI · 氛围花语 | `mod/frontend` |
+| **collect** | `03-collect` + vendor | SS+Sif 采集 · 清洗核对 | `mod/collect` |
+| **report** | `04-report` | 异动日报 ≠ 行业/优化报告 | `mod/report` |
+| **infra** | `05-infra` | Schema · pooler · migrate | `mod/infra` |
+| **vendor** | `docs/vendor/sif-mcp` | Sif 官方 schema，禁止臆造字段 | `mod/vendor` |
+
+进度摘要：`docs/kb/07-changelog-*.md` · 全索引：`docs/kb/INDEX.md`
+
 ## 产品中心
 
 - **我的 ASIN 可选**（可多变体）：无 own → 仅行业竞品报告；有 own → 行业报告 + 可优化项
@@ -18,8 +34,6 @@ alwaysApply: true
 3. **基础设施** `src/lib/db/**`, `drizzle/**`, `vercel.json`, `.env*`
 4. **交叉契约** `docs/kb/01-contracts.md` + types — 禁止凭空重写
 
-业务详情：`docs/kb/INDEX.md`。针对性开发只加载对应 kb。
-
 ## SOP
 
 1. 全局思路 → 2. 拆模块 → 3. 定接口 → 4. **确认后再写核心代码**
@@ -28,9 +42,39 @@ alwaysApply: true
 
 涉及 Schema/SQL、全局配置、跨模块接口：先行动计划 → 等 **「确认执行」** → 再改。
 
-## Git
+## 准备上新（对话交接）
 
-- 单点通过后提醒本地 commit
-- **push 前必须先生成变更总结**（写入 `docs/kb/07-changelog-*.md`），与规则/kb 同步后再 push
-- **禁止**擅自 push / 发版；仅用户明确要求时再 push
-- 分支：`mod/<模块>`，与 `docs/kb/` 对齐
+用户说 **「准备上新」** / **「上新」** / **「换对话」** 时：
+
+1. **估上下文占用**：综合本对话轮次、长工具输出、已读大文件等；若 **约 ≥70%**（或已明显吃紧）→ 明确告知「建议关闭本对话，用下方模板开新聊」
+2. **等任务**：用户给出下一任务（一句即可）
+3. **拆模块**：对照上表，列出要动的 `mod/*`、必读 `docs/kb/*.md`、关键 `.cursor/rules/*.mdc`、关键源码路径（3～8 个关键文件即可）
+4. **自动生成开聊模板**（可直接复制到新对话），格式固定为：
+
+```
+按 ASIN Lens 守则（全局 SOP）。
+本区块：mod/<主模块>（兼：mod/<次要>…）
+必读：docs/kb/01-contracts.md + docs/kb/<…>
+可选：docs/vendor/…（若涉及 Sif）
+背景摘要：<上轮结论 2～4 句 + 指向 07-changelog>
+本轮目标：<用户任务改写为一句可执行目标>
+先给行动计划，等我「确认执行」后再改代码。
+我说 push = 先本地 commit 再 push（总结须已齐）。
+```
+
+5. 模板末可附「建议先读文件」清单；**不要**在交接模板里塞大段代码。
+
+## Git（用户说「push」即完整发版链路）
+
+用户只说 **push**（或「推送」）时，按顺序执行，无需再确认 commit：
+
+1. **变更总结**：若本轮有实质改动且 `docs/kb/07-changelog-*.md` 未更新 → 先补齐总结（与规则/kb 同步）
+2. **本地 commit**：工作区有未提交改动 → 按仓库风格写好 message 并 `git commit`（含相关 untracked；勿提交 `.env` 等密钥）
+3. **push**：`git push -u origin HEAD`（或当前跟踪分支）；**禁止** force push / 擅自发版 tagging
+4. 完成后回报：commit hash、远程分支、PR 若已存在则附链接
+
+其它约定：
+
+- 单点通过后也可提醒本地 commit（用户未说 push 时仍可只 commit）
+- 分支名：`mod/<模块>`，与上表对齐
+- 无改动可提交时：跳过 commit，仍尝试 push（若已领先远程则直接推；若无新提交则说明即可）

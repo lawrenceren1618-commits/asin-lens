@@ -19,4 +19,5 @@ alwaysApply: false
 
 - 业务核心是调研与优化脉络；氛围/花语只做点缀
 - 上半区清朗；报错用 `IssueChecklist`
-- 保留右侧 `ModuleMap`
+- 旁侧中英花语：舒缓认同感——不抢戏，但字号不能费劲
+- **不要**把开发用模块树（`mod/*` ↔ kb）挂到客户 UI；对照见 `docs/kb/INDEX.md`

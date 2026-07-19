@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { LogOut, UserRound } from "lucide-react";
 
 import { AtmospherePanel } from "@/components/atmosphere-panel";
-import { ModuleMap } from "@/components/module-map";
 import { SideQuote } from "@/components/side-quote";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,7 +234,6 @@ export function AppShell({
         aria-hidden
       />
 
-      <ModuleMap />
       <SideQuote />
 
       <div className="relative z-10 mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-6 py-6 sm:px-10 lg:px-12">

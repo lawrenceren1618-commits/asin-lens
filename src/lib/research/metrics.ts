@@ -17,6 +17,7 @@ import {
   type MetricField,
   type SourcePriorityConfig,
 } from "./source-priority";
+import { extractTrafficSourceFromSources } from "./traffic-source";
 
 /** Canonical metrics stored in Postgres — AI/machine-friendly, stable shape. */
 export const snapshotMetricsSchema = z.object({
@@ -185,6 +186,7 @@ export function cleanToMetrics(
     }) ?? [];
 
   const keywordTraffic = collectKeywordTrafficFromSources(sources);
+  const trafficSource = extractTrafficSourceFromSources(sources);
   const topKeywordsFromTraffic = keywordTraffic.map((row) => row.keyword);
   const topKeywords = Array.isArray(keywordSource)
     ? keywordSource.filter((item): item is string => typeof item === "string")
@@ -206,6 +208,7 @@ export function cleanToMetrics(
     keywordTraffic,
     rawRefs: {
       sources: perSourceMeta,
+      trafficSource,
       priority,
       cleanedAt: new Date().toISOString(),
     },

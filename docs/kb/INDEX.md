@@ -1,5 +1,8 @@
 # ASIN Lens 知识库索引（模块树）
 
+> **一眼看**：全局规则 `.cursor/rules/asin-lens-sop.mdc`（alwaysApply）置顶有同款表——新对话自动带上。  
+> 本页为详表。开新对话可复制下方模板；模块树无需再贴（规则已注入）。
+
 > 开新对话时复制：「按 ASIN Lens 守则；本区块只做：`mod/<名>`；先读 `docs/kb/<文件>`」
 
 ```
@@ -44,8 +47,7 @@ asin-lens/
 按 ASIN Lens 守则（全局 SOP）。
 本区块：mod/<名>
 必读：docs/kb/01-contracts.md + docs/kb/<对应文件>
-背景：docs/kb/07-changelog-mod-contracts.md
-当前分支：mod/contracts（或说明要切到哪个 mod/*）
+背景：docs/kb/07-changelog-*.md
 先给行动计划，等我确认执行后再改代码。
-push 前必须先写/更新 docs/kb/07-changelog-*.md，再与规则一并 push。
+我说 push = 先本地 commit 再 push（总结须已齐）。
 ```

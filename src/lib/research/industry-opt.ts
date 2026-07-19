@@ -15,6 +15,7 @@ import {
   type IndustryOptCanonical,
 } from "@/lib/research/industry-opt-format";
 import { analyzeKeywordTraffic } from "@/lib/research/keyword-traffic";
+import { extractTrafficSourceFromRawRefs } from "@/lib/research/traffic-source";
 import { shanghaiDay } from "@/lib/time";
 
 function median(values: number[]): number | null {
@@ -54,6 +55,9 @@ function buildSlice(
 ) {
   const keywordTraffic = (snap?.keywordTraffic ?? []) as KeywordTrafficRow[];
   const analysis = analyzeKeywordTraffic(keywordTraffic);
+  const trafficSource = extractTrafficSourceFromRawRefs(
+    (snap?.rawRefs ?? {}) as Record<string, unknown>,
+  );
   return {
     asin: asin.asin,
     market: asin.market,
@@ -65,6 +69,7 @@ function buildSlice(
     rank: snap?.rank ?? null,
     trafficPattern: analysis.pattern,
     top3ShareSum: analysis.top3ShareSum,
+    trafficSource,
     topKeywords: analysis.keywords,
   };
 }
@@ -160,6 +165,7 @@ export async function generateIndustryOptReport(
         manualCvr60d: num(row.manualCvr60d),
         trafficPattern: slice.trafficPattern,
         trafficNote: trafficNote(slice.trafficPattern, slice.top3ShareSum),
+        trafficSource: slice.trafficSource,
         pricingNote: pricingNote(slice.price, competitorPrices),
         copyNote: copyNote(slice.title, competitorTitles),
         keywordInsights: slice.topKeywords,

@@ -66,24 +66,26 @@ html[data-day="dawn"] {
 }
 
 html[data-day="day"] {
-  --sky-top: oklch(0.9 0.035 210);
-  --sky-mid: oklch(0.86 0.04 95);
-  --sky-low: oklch(0.62 0.04 75);
-  --bloom: oklch(0.95 0.05 90 / 0.4);
-  --shade: oklch(0.65 0.03 90 / 0.1);
-  --background: oklch(0.9 0.02 95);
+  /* 参照朝阳：上半区清朗，略偏日中暖白，不压暗、不加雾 */
+  --sky-top: oklch(0.9 0.045 85);
+  --sky-mid: oklch(0.84 0.055 70);
+  --sky-low: oklch(0.58 0.05 55);
+  --bloom: oklch(0.94 0.08 75 / 0.48);
+  --shade: oklch(0.55 0.04 50 / 0.12);
+  --background: oklch(0.9 0.025 80);
   --camp-image: url("/images/camp-horizon.png");
-  --brand: oklch(0.26 0.04 250);
-  --primary: oklch(0.45 0.1 230);
+  --brand: oklch(0.27 0.045 50);
+  --primary: oklch(0.47 0.11 48);
 }
 
 html[data-day="dusk"] {
-  --sky-top: oklch(0.82 0.07 50);
-  --sky-mid: oklch(0.68 0.09 40);
-  --sky-low: oklch(0.4 0.08 30);
-  --bloom: oklch(0.88 0.11 55 / 0.5);
-  --shade: oklch(0.38 0.06 30 / 0.18);
-  --camp-image: url("/images/camp-dawn.png");
+  /* 参照朝阳：同图氛围，暮色略沉但上沿仍透亮 */
+  --sky-top: oklch(0.84 0.065 65);
+  --sky-mid: oklch(0.72 0.08 50);
+  --sky-low: oklch(0.44 0.07 35);
+  --bloom: oklch(0.9 0.11 60 / 0.55);
+  --shade: oklch(0.4 0.06 35 / 0.16);
+  --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.26 0.05 40);
   --primary: oklch(0.46 0.13 40);
 }
@@ -193,21 +195,21 @@ h2,
 
 .page-principle {
   color: var(--muted-foreground);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   line-height: 1.65;
   max-width: 22rem;
 }
 
-/* Ambient line — floats in the scene, never a card */
+/* Ambient line — floats in the scene, soft but readable */
 .ambient-line {
   color: var(--quote);
-  opacity: 0.58;
-  text-shadow: 0 1px 10px oklch(0.95 0.02 80 / 0.35);
+  opacity: 0.72;
+  text-shadow: 0 1px 12px oklch(0.95 0.02 80 / 0.4);
 }
 
 .ambient-line-en {
   color: var(--muted-foreground);
-  opacity: 0.5;
+  opacity: 0.62;
 }
 
 .quote-line {
@@ -363,13 +365,13 @@ html[data-day="dawn"] .camp-scene {
 }
 
 html[data-day="day"] .camp-scene {
-  opacity: 0.7;
-  filter: brightness(1.08) saturate(1.05);
+  opacity: 0.78;
+  filter: brightness(1.04) saturate(1.04);
 }
 
 html[data-day="dusk"] .camp-scene {
-  opacity: 0.72;
-  filter: saturate(1.1) brightness(0.92);
+  opacity: 0.8;
+  filter: saturate(1.06) brightness(0.96);
 }
 
 html[data-ink="dark"] .surface-panel {

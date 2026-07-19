@@ -14,6 +14,17 @@
 - 无我的 ASIN → 仅行业竞品；有 → 行业 + 可优化项  
 - 分散型流量只下结论，不深挖  
 
+### 流量来源段
+
+- 源：Sif `ops_get_listing_traffic_overview`（采集写入 `rawRefs.trafficSource`）  
+- 解析：`traffic-source.ts`  
+- 报告输出：自然 vs 广告占比 + SP / SP推荐 / SB / SBV；无源 → `no_result`  
+
+### 词转化旁注
+
+- Sif 无 ASIN×词 CVR → 词行 `no_result`  
+- 我的 ASIN：有手填 `manual_cvr_60d` 时，词行旁注「对照手填整体 CVR」  
+
 ## 导出管线（异动日报）
 
 1. 组装 `ReportCanonical`  

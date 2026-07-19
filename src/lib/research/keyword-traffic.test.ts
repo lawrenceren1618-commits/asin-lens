@@ -146,6 +146,18 @@ describe("industry opt report", () => {
             rank: 10,
             trafficPattern: "concentrated",
             top3ShareSum: 0.8,
+            trafficSource: {
+              status: "ok",
+              totalScore: 100,
+              naturalShare: 0.62,
+              adShare: 0.38,
+              channels: {
+                sp: 0.2,
+                recSp: 0.08,
+                sb: 0.06,
+                sbv: 0.04,
+              },
+            },
             topKeywords: [
               {
                 keyword: "desk lamp",
@@ -165,6 +177,8 @@ describe("industry opt report", () => {
     expect(verify.ok).toBe(true);
     expect(markdown).toContain("行业竞品报告");
     expect(markdown).toContain("B0TEST1234");
+    expect(markdown).toContain("流量来源");
+    expect(markdown).toContain("自然 62.0%");
     expect(formatIndustryOptMd).toBeTypeOf("function");
   });
 
