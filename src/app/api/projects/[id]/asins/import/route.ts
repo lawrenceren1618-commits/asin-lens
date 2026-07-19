@@ -36,6 +36,7 @@ export async function POST(request: Request, { params }: Params) {
       asin: row.asin,
       market: row.market,
       note: row.note,
+      role: row.role,
     });
     if (result.created) created += 1;
     else skipped += 1;

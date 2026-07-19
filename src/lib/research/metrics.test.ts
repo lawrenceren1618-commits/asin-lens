@@ -84,6 +84,7 @@ describe("metrics clean + verify", () => {
       cart: "",
       traffic: null,
       topKeywords: [],
+      keywordTraffic: [],
       rawRefs: {},
     });
     expect(result.ok).toBe(true);

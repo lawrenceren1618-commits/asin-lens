@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { config } from "dotenv";
 import postgres from "postgres";
@@ -11,15 +11,19 @@ if (!url) {
   process.exit(1);
 }
 
-const sqlText = readFileSync(
-  resolve("drizzle/0000_init.sql"),
-  "utf8",
-);
+const drizzleDir = resolve("drizzle");
+const files = readdirSync(drizzleDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort();
 
 const client = postgres(url, { prepare: false, max: 1, connect_timeout: 30 });
 
 try {
-  await client.unsafe(sqlText);
+  for (const file of files) {
+    const sqlText = readFileSync(resolve(drizzleDir, file), "utf8");
+    await client.unsafe(sqlText);
+    console.log(`PASS  applied ${file}`);
+  }
   console.log("PASS  schema applied");
 } catch (error) {
   console.error(

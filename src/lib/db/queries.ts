@@ -8,7 +8,9 @@ import {
   asinSnapshots,
   asins,
   dailyReports,
+  industryOptReports,
   projects,
+  type AsinRole,
 } from "@/lib/db/schema";
 
 export async function listProjects() {
@@ -46,10 +48,12 @@ export async function addAsin(input: {
   asin: string;
   market?: string;
   note?: string;
+  role?: AsinRole;
 }) {
   const db = getDb();
   const asin = input.asin.trim().toUpperCase();
   const market = (input.market ?? "US").trim().toUpperCase() || "US";
+  const role: AsinRole = input.role === "own" ? "own" : "competitor";
 
   const existing = await db
     .select()
@@ -74,11 +78,47 @@ export async function addAsin(input: {
       asin,
       market,
       note: input.note?.trim() || null,
+      role,
       status: "new",
     })
     .returning();
 
   return { row, created: true as const };
+}
+
+export async function updateAsin(
+  projectId: string,
+  asinId: string,
+  patch: {
+    role?: AsinRole;
+    manualCvr60d?: number | null;
+    note?: string | null;
+  },
+) {
+  const db = getDb();
+  const [existing] = await db
+    .select()
+    .from(asins)
+    .where(and(eq(asins.id, asinId), eq(asins.projectId, projectId)))
+    .limit(1);
+  if (!existing) return null;
+
+  const [row] = await db
+    .update(asins)
+    .set({
+      ...(patch.role !== undefined ? { role: patch.role } : {}),
+      ...(patch.manualCvr60d !== undefined
+        ? {
+            manualCvr60d:
+              patch.manualCvr60d === null ? null : String(patch.manualCvr60d),
+          }
+        : {}),
+      ...(patch.note !== undefined ? { note: patch.note } : {}),
+    })
+    .where(eq(asins.id, asinId))
+    .returning();
+
+  return row;
 }
 
 export async function getLatestSnapshot(asinId: string) {
@@ -133,6 +173,16 @@ export async function listDailyReports(projectId: string, limit = 14) {
     .from(dailyReports)
     .where(eq(dailyReports.projectId, projectId))
     .orderBy(desc(dailyReports.reportDate))
+    .limit(limit);
+}
+
+export async function listIndustryOptReports(projectId: string, limit = 14) {
+  const db = getDb();
+  return db
+    .select()
+    .from(industryOptReports)
+    .where(eq(industryOptReports.projectId, projectId))
+    .orderBy(desc(industryOptReports.reportDate))
     .limit(limit);
 }
 

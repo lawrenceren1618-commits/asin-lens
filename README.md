@@ -14,16 +14,17 @@ npm run dev
 
 ## 数据库建表（必做一次）
 
-本机直连 Supabase 若出现 IPv6 超时，请在 Supabase 控制台 → **SQL Editor** 粘贴执行：
+本机直连 Supabase 若出现 IPv6 超时，请：
 
-[`drizzle/0000_init.sql`](drizzle/0000_init.sql)
-
-`DATABASE_URL` 推荐使用 **Connection pooling**（host 含 `pooler`，端口 `6543`）。不要把连接串发到聊天。
+1. 在 Supabase → **Project Settings → Database → Connection string** 复制 **Transaction pooler**（host 含 `pooler`，端口 `6543`，用户形如 `postgres.<project-ref>`），写入本地与 Vercel 的 `DATABASE_URL`  
+2. 在 **SQL Editor** 粘贴执行增量迁移：[`drizzle/0001_own_competitor.sql`](drizzle/0001_own_competitor.sql)  
+   （或部署后 `POST /api/admin/migrate`，需 `ADMIN_TOKEN`）
 
 也可在网络正常时尝试：
 
 ```bash
 node scripts/apply-schema.mjs
+node scripts/fix-db-url.mjs   # 探测 pooler 并改写 .env.local（不打印密钥）
 ```
 
 ## 环境变量

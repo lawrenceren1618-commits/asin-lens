@@ -8,6 +8,10 @@ import {
   type SourceResult,
 } from "./normalize";
 import {
+  keywordTrafficRowSchema,
+  mergeKeywordTraffic,
+} from "./keyword-traffic";
+import {
   DEFAULT_SOURCE_PRIORITY,
   orderForField,
   type MetricField,
@@ -23,6 +27,7 @@ export const snapshotMetricsSchema = z.object({
   cart: z.string(),
   traffic: z.number().finite().nullable(),
   topKeywords: z.array(z.string().min(1)).max(20),
+  keywordTraffic: z.array(keywordTrafficRowSchema).max(20),
   rawRefs: z.record(z.string(), z.unknown()),
 });
 
@@ -169,9 +174,16 @@ export function cleanToMetrics(
       return list.length > 0 ? list : null;
     }) ?? [];
 
+  const keywordTraffic = mergeKeywordTraffic(bySource);
+  const topKeywordsFromTraffic = keywordTraffic.map((row) => row.keyword);
   const topKeywords = Array.isArray(keywordSource)
     ? keywordSource.filter((item): item is string => typeof item === "string")
     : [];
+  const mergedTopKeywords = [
+    ...new Set(
+      [...topKeywordsFromTraffic, ...topKeywords].filter(Boolean),
+    ),
+  ].slice(0, 20);
 
   return {
     title,
@@ -180,7 +192,8 @@ export function cleanToMetrics(
     rank: rankRaw === null ? null : Math.round(rankRaw),
     cart,
     traffic,
-    topKeywords,
+    topKeywords: mergedTopKeywords,
+    keywordTraffic,
     rawRefs: {
       sources: perSourceMeta,
       priority,
@@ -210,7 +223,8 @@ export function verifyMetrics(candidate: unknown): MetricsVerifyResult {
     metrics.sales !== null ||
     metrics.rank !== null ||
     metrics.traffic !== null ||
-    metrics.topKeywords.length > 0;
+    metrics.topKeywords.length > 0 ||
+    metrics.keywordTraffic.length > 0;
 
   if (!hasSignal) {
     issues.push("无有效业务字段（标题/价格/销量/排名/流量/关键词均为空）");

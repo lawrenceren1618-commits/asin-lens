@@ -11,10 +11,17 @@
 | 路由 | 组件 | 用途 |
 |------|------|------|
 | `/projects` | `projects-dashboard` | 项目列表 |
-| `/projects/[id]` | `project-detail` | ASIN、采集、图、报错清单 |
+| `/projects/[id]` | `project-detail` | 我的/竞品 ASIN、采集、图、行业优化报告、日报、报错清单 |
 | `/reports` | `reports-dashboard` | 日报阅读 |
 | `/rules` | `rules-dashboard` | 源优先级 + 后续能力入口 |
 | `/debug` | MCP 调试 | 旧控制台 |
+
+## 项目详情要点
+
+- ASIN 分两区：**我的**（可选，可多变体）与 **竞品**（默认）  
+- 可将竞品「标为我的」；CSV `role` 列：`own` / `competitor`  
+- 我的 ASIN 可手填近 60 天整体转化率（小字提示亚马逊后台路径）  
+- 「生成行业/优化报告」与异动日报分离  
 
 ## UI 原则
 

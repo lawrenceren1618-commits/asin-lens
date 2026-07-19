@@ -1,2 +1,3 @@
-asin,market,note
-B0EXAMPLE01,US,示例 ASIN，请替换
+asin,market,note,role
+B0EXAMPLE01,US,competitor sample,competitor
+B0EXAMPLE02,US,my variant A,own

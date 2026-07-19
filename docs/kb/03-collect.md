@@ -8,8 +8,8 @@
 ## 单 ASIN 步骤
 
 1. 调 SellerSprite / Sif `asin_detail`（失败保留 error 进 raw）  
-2. `prepareMetricsForStorage(sources, priority)`  
-3. Upsert `asin_snapshots`  
+2. `prepareMetricsForStorage(sources, priority)`（含 `keywordTraffic`：Sif 优先，CVR 仅 Sif）  
+3. Upsert `asin_snapshots`（含 `keyword_traffic`）  
 4. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
 5. 更新 `asins.lastSyncedAt`  
 

@@ -5,6 +5,7 @@ import {
   getLatestSnapshot,
   getProject,
   listDailyReports,
+  listIndustryOptReports,
   listProjectAsins,
   listSnapshotsForProject,
 } from "@/lib/db/queries";
@@ -33,11 +34,13 @@ export async function GET(request: Request, { params }: Params) {
   );
   const snapshots = await listSnapshotsForProject(id, 60);
   const reports = await listDailyReports(id, 14);
+  const industryOptReports = await listIndustryOptReports(id, 14);
 
   return NextResponse.json({
     project,
     asins: withLatest,
     snapshots,
     reports,
+    industryOptReports,
   });
 }

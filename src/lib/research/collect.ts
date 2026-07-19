@@ -112,6 +112,7 @@ async function collectOneAsin(
       cart: metrics.cart || null,
       traffic: metrics.traffic === null ? null : String(metrics.traffic),
       topKeywords: metrics.topKeywords,
+      keywordTraffic: metrics.keywordTraffic,
       rawRefs: metrics.rawRefs,
       observedAt: now,
     })
@@ -125,6 +126,7 @@ async function collectOneAsin(
         cart: metrics.cart || null,
         traffic: metrics.traffic === null ? null : String(metrics.traffic),
         topKeywords: metrics.topKeywords,
+        keywordTraffic: metrics.keywordTraffic,
         rawRefs: metrics.rawRefs,
         observedAt: now,
       },

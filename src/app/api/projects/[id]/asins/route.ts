@@ -24,6 +24,7 @@ export async function POST(request: Request, { params }: Params) {
       asin: z.string().trim().min(1).max(20),
       market: z.string().trim().max(10).optional(),
       note: z.string().trim().max(200).optional(),
+      role: z.enum(["own", "competitor"]).optional(),
     })
     .parse(await request.json());
 
@@ -32,6 +33,7 @@ export async function POST(request: Request, { params }: Params) {
     asin: body.asin,
     market: body.market,
     note: body.note,
+    role: body.role,
   });
 
   return NextResponse.json(result);
