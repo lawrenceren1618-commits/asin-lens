@@ -17,13 +17,14 @@
   --quote: oklch(0.34 0.04 50);
   --fire: oklch(0.72 0.12 55);
   --camp-image: url("/images/camp-horizon.png");
+  --distant-image: url("/images/distant-vista.png");
   --custom-full-bg: none;
-  /* Upper band: luminous warm dawn sky — same family as 朝阳, not cold blue / empty fog */
-  --sky-top: oklch(0.94 0.055 72);
-  --sky-mid: oklch(0.84 0.09 62);
+  /* Upper/mid: warm dawn continuum; contours come from distant-scene image */
+  --sky-top: oklch(0.93 0.05 72);
+  --sky-mid: oklch(0.84 0.08 62);
   --sky-low: oklch(0.5 0.07 48);
-  --sun: oklch(0.96 0.14 75 / 0.5);
-  --bloom: oklch(0.92 0.12 68 / 0.48);
+  --sun: oklch(0.96 0.12 75 / 0.35);
+  --bloom: oklch(0.92 0.1 68 / 0.32);
   --shade: oklch(0.45 0.05 42 / 0.14);
   --title-shadow: none;
   --text-scrim: oklch(0.99 0.01 75 / 0.55);
@@ -145,15 +146,14 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--foreground);
   background-color: var(--background);
-  /* One continuous dawn: sun wash in upper sky → warm mid → camp low */
+  /* Soft wash only — landforms live in .distant-scene / .camp-scene */
   background-image:
-    radial-gradient(ellipse 28% 26% at 74% 6%, var(--sun), transparent 68%),
-    radial-gradient(ellipse 48% 38% at 80% 20%, var(--bloom), transparent 72%),
-    radial-gradient(ellipse 40% 32% at 14% 92%, var(--shade), transparent 58%),
+    radial-gradient(ellipse 30% 22% at 78% 10%, var(--sun), transparent 70%),
+    radial-gradient(ellipse 40% 28% at 16% 92%, var(--shade), transparent 58%),
     linear-gradient(
       180deg,
       var(--sky-top) 0%,
-      var(--sky-mid) 48%,
+      var(--sky-mid) 55%,
       var(--sky-low) 100%
     );
   background-attachment: fixed;
@@ -344,6 +344,49 @@ h2,
   box-shadow:
     0 16px 40px oklch(0.12 0.03 255 / 0.28),
     inset 0 1px 0 color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+/* Distant vista: mountains / river / waterfall fill mid–upper (not empty fog) */
+.distant-scene {
+  pointer-events: none;
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: min(72vh, 760px);
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--sky-top) 55%, transparent) 0%,
+      transparent 18%,
+      transparent 72%,
+      color-mix(in oklch, var(--sky-mid) 35%, transparent) 100%
+    ),
+    var(--distant-image) center 42% / cover no-repeat;
+  opacity: 0.88;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 8%,
+    black 70%,
+    transparent 100%
+  );
+}
+
+html[data-bg-source="custom"] .distant-scene {
+  opacity: 0.25;
+}
+
+html[data-day="dawn"] .distant-scene {
+  opacity: 0.92;
+}
+
+html[data-day="day"] .distant-scene {
+  opacity: 0.86;
+  filter: brightness(1.03) saturate(1.02);
+}
+
+html[data-day="dusk"] .distant-scene {
+  opacity: 0.84;
+  filter: saturate(1.05) brightness(0.96);
 }
 
 .camp-scene {

@@ -223,6 +223,7 @@ export function AppShell({
 
   return (
     <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden">
+      <div className="distant-scene" aria-hidden />
       <div className="camp-scene" aria-hidden />
       <WeatherLayer weather={atmosphere.weather} />
       <div
@@ -230,7 +231,7 @@ export function AppShell({
         aria-hidden
       />
       <div
-        className="ambient-orb right-[-2rem] top-16 size-44 bg-[oklch(0.9_0.12_70)] opacity-35"
+        className="ambient-orb right-[-2rem] top-[42%] size-36 bg-[oklch(0.9_0.12_70)] opacity-28"
         aria-hidden
       />
 
