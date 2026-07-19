@@ -350,55 +350,56 @@ h2,
 .distant-scene {
   pointer-events: none;
   position: absolute;
-  inset: 0 0 auto 0;
-  height: min(72vh, 760px);
+  z-index: 1;
+  inset: 0;
+  height: 100%;
   background:
     linear-gradient(
       to bottom,
-      color-mix(in oklch, var(--sky-top) 55%, transparent) 0%,
-      transparent 18%,
-      transparent 72%,
-      color-mix(in oklch, var(--sky-mid) 35%, transparent) 100%
+      transparent 0%,
+      transparent 58%,
+      color-mix(in oklch, var(--sky-mid) 40%, transparent) 82%,
+      color-mix(in oklch, var(--sky-low) 70%, transparent) 100%
     ),
-    var(--distant-image) center 42% / cover no-repeat;
-  opacity: 0.88;
+    var(--distant-image) center 28% / cover no-repeat;
+  opacity: 0.95;
   mask-image: linear-gradient(
     to bottom,
-    transparent 0%,
-    black 8%,
-    black 70%,
-    transparent 100%
+    black 0%,
+    black 62%,
+    transparent 92%
   );
 }
 
 html[data-bg-source="custom"] .distant-scene {
-  opacity: 0.25;
+  opacity: 0.28;
 }
 
 html[data-day="dawn"] .distant-scene {
-  opacity: 0.92;
+  opacity: 1;
 }
 
 html[data-day="day"] .distant-scene {
-  opacity: 0.86;
-  filter: brightness(1.03) saturate(1.02);
+  opacity: 0.94;
+  filter: brightness(1.04) saturate(1.03);
 }
 
 html[data-day="dusk"] .distant-scene {
-  opacity: 0.84;
-  filter: saturate(1.05) brightness(0.96);
+  opacity: 0.92;
+  filter: saturate(1.06) brightness(0.97);
 }
 
 .camp-scene {
   pointer-events: none;
   position: absolute;
+  z-index: 2;
   inset: auto 0 0 0;
-  height: min(42vh, 420px);
+  height: min(46vh, 460px);
   background:
     linear-gradient(to top, color-mix(in oklch, var(--sky-low) 70%, transparent) 0%, transparent 52%),
     var(--camp-image) center bottom / cover no-repeat;
-  opacity: 0.72;
-  mask-image: linear-gradient(to top, black 22%, transparent 96%);
+  opacity: 0.78;
+  mask-image: linear-gradient(to top, black 28%, transparent 100%);
 }
 
 html[data-bg-source="custom"] .camp-scene {
@@ -431,7 +432,7 @@ html[data-ink="dark"] .surface-panel {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   overflow: hidden;
 }
 
