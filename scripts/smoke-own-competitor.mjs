@@ -1,6 +1,6 @@
 /**
- * Smoke test: own vs competitor ASINs via MCP clean → industry/opt report (no DB).
- * Usage: node scripts/smoke-own-competitor.mjs
+ * Smoke test via real MCP client + clean/report (no DB write).
+ * Usage: node --import ./scripts/smoke-register.mjs --import tsx scripts/smoke-own-competitor.mjs
  */
 import { config } from "dotenv";
 
@@ -10,79 +10,9 @@ const OWN = "B0CCRKDW1K";
 const COMPETITOR = "B0CBF4T1V3";
 const MARKET = "US";
 
-async function callMcp(baseUrl, secret, tool, args) {
-  const url = new URL(baseUrl);
-  url.searchParams.set("secret-key", secret);
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json, text/event-stream",
-      "secret-key": secret,
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "tools/call",
-      params: { name: tool, arguments: args },
-    }),
-  });
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(`${tool} HTTP ${response.status}: ${text.slice(0, 200)}`);
-  }
-  // SSE or JSON
-  if (text.includes("data:")) {
-    const line = text.split(/\r?\n/).find((l) => l.startsWith("data:"));
-    if (!line) return { raw: text.slice(0, 500) };
-    return JSON.parse(line.slice(5).trim());
-  }
-  return JSON.parse(text);
-}
-
-async function fetchSources(asin) {
-  const sources = [];
-  const ssUrl = process.env.SELLERSPRITE_MCP_URL || "https://mcp.sellersprite.com/mcp";
-  const ssKey = process.env.SELLERSPRITE_SECRET_KEY;
-  const sifUrl = process.env.SIF_MCP_URL || "https://mcp.sif.com/mcp";
-  const sifKey = process.env.SIF_SECRET_KEY;
-
-  if (ssKey) {
-    try {
-      const raw = await callMcp(ssUrl, ssKey, "asin_detail", {
-        asin,
-        marketplace: MARKET,
-      });
-      sources.push({ source: "SellerSprite", tool: "asin_detail", raw });
-    } catch (error) {
-      sources.push({
-        source: "SellerSprite",
-        tool: "asin_detail",
-        raw: { error: error instanceof Error ? error.message : String(error) },
-      });
-    }
-  }
-
-  if (sifKey) {
-    try {
-      const raw = await callMcp(sifUrl, sifKey, "asin_detail", {
-        asin,
-        marketplace: MARKET,
-      });
-      sources.push({ source: "Sif", tool: "asin_detail", raw });
-    } catch (error) {
-      sources.push({
-        source: "Sif",
-        tool: "asin_detail",
-        raw: { error: error instanceof Error ? error.message : String(error) },
-      });
-    }
-  }
-
-  return sources;
-}
-
 async function main() {
+  const { callSellerSpriteTool } = await import("../src/lib/mcp/sellersprite.ts");
+  const { callSifTool } = await import("../src/lib/mcp/sif.ts");
   const { prepareMetricsForStorage } = await import(
     "../src/lib/research/metrics.ts"
   );
@@ -92,33 +22,87 @@ async function main() {
   const { prepareIndustryOptExport } = await import(
     "../src/lib/research/industry-opt-format.ts"
   );
+  const { normalizeToolResult, safeJson } = await import(
+    "../src/lib/research/normalize.ts"
+  );
+
+  async function fetchSources(asin) {
+    const sources = [];
+    try {
+      const raw = await callSellerSpriteTool("asin_detail", {
+        asin,
+        marketplace: MARKET,
+      });
+      sources.push({ source: "SellerSprite", tool: "asin_detail", raw });
+      const items = normalizeToolResult(sources[0]);
+      console.log(
+        `${asin} SellerSprite fields:`,
+        items
+          .flatMap((i) => Object.keys(i.data))
+          .slice(0, 25)
+          .join(", ") || "(none)",
+      );
+    } catch (error) {
+      console.log(
+        `${asin} SellerSprite FAIL:`,
+        error instanceof Error ? error.message.slice(0, 200) : error,
+      );
+      sources.push({
+        source: "SellerSprite",
+        tool: "asin_detail",
+        raw: {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+    }
+
+    try {
+      const raw = await callSifTool("asin_detail", {
+        asin,
+        marketplace: MARKET,
+      });
+      sources.push({ source: "Sif", tool: "asin_detail", raw });
+      const items = normalizeToolResult(sources.at(-1));
+      console.log(
+        `${asin} Sif fields:`,
+        items
+          .flatMap((i) => Object.keys(i.data))
+          .slice(0, 25)
+          .join(", ") || "(none)",
+      );
+      console.log(`${asin} Sif raw preview:`, safeJson(raw, 500));
+    } catch (error) {
+      console.log(
+        `${asin} Sif FAIL:`,
+        error instanceof Error ? error.message.slice(0, 200) : error,
+      );
+    }
+
+    return sources;
+  }
 
   console.log(`OWN=${OWN} COMPETITOR=${COMPETITOR}`);
-
   const ownSources = await fetchSources(OWN);
   const compSources = await fetchSources(COMPETITOR);
 
-  let ownMetrics;
-  let compMetrics;
-  try {
-    ownMetrics = prepareMetricsForStorage(ownSources).metrics;
-    console.log(
-      `OWN metrics: title=${ownMetrics.title.slice(0, 40)} keywords=${ownMetrics.keywordTraffic.length}`,
-    );
-  } catch (error) {
-    console.error("OWN clean failed:", error instanceof Error ? error.message : error);
-    ownMetrics = null;
+  function tryClean(label, sources) {
+    try {
+      const { metrics } = prepareMetricsForStorage(sources);
+      console.log(
+        `${label} OK title="${metrics.title.slice(0, 48)}" price=${metrics.price} kw=${metrics.keywordTraffic.length}`,
+      );
+      return metrics;
+    } catch (error) {
+      console.log(
+        `${label} CLEAN FAIL:`,
+        error instanceof Error ? error.message : error,
+      );
+      return null;
+    }
   }
 
-  try {
-    compMetrics = prepareMetricsForStorage(compSources).metrics;
-    console.log(
-      `COMP metrics: title=${compMetrics.title.slice(0, 40)} keywords=${compMetrics.keywordTraffic.length}`,
-    );
-  } catch (error) {
-    console.error("COMP clean failed:", error instanceof Error ? error.message : error);
-    compMetrics = null;
-  }
+  const ownMetrics = tryClean("OWN", ownSources);
+  const compMetrics = tryClean("COMP", compSources);
 
   function slice(asin, role, metrics) {
     const analysis = analyzeKeywordTraffic(metrics?.keywordTraffic ?? []);
@@ -141,7 +125,7 @@ async function main() {
   const own = slice(OWN, "own", ownMetrics);
   const prices = [competitor.price].filter((p) => p !== null);
 
-  const candidate = {
+  const { markdown, verify } = prepareIndustryOptExport({
     projectId: "smoke",
     projectName: "Smoke Own/Competitor",
     reportDate: new Date().toISOString().slice(0, 10),
@@ -165,9 +149,9 @@ async function main() {
         trafficPattern: own.trafficPattern,
         trafficNote:
           own.trafficPattern === "dispersed"
-            ? "这是分散型流量。深挖留给其它功能区；本报告仅作筛选结论。"
+            ? "这是分散型流量。"
             : own.trafficPattern === "concentrated"
-              ? "集中型流量。优先优化前三词。"
+              ? "集中型流量。"
               : "流量结构未知。",
         pricingNote:
           own.price !== null && competitor.price !== null
@@ -177,10 +161,9 @@ async function main() {
         keywordInsights: own.topKeywords,
       },
     ],
-  };
+  });
 
-  const { markdown, verify } = prepareIndustryOptExport(candidate);
-  console.log("verify.ok=", verify.ok, "issues=", verify.issues.join("; ") || "(none)");
+  console.log("verify.ok=", verify.ok);
   console.log("----- REPORT -----");
   console.log(markdown);
 }
