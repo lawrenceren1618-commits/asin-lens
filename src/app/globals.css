@@ -18,12 +18,13 @@
   --fire: oklch(0.72 0.12 55);
   --camp-image: url("/images/camp-horizon.png");
   --custom-full-bg: none;
-  /* Upper band: clear open sky — high L, no milky gray veil */
-  --sky-top: oklch(0.96 0.03 230);
-  --sky-mid: oklch(0.88 0.05 85);
-  --sky-low: oklch(0.52 0.05 50);
-  --bloom: oklch(0.95 0.06 80 / 0.28);
-  --shade: oklch(0.45 0.04 40 / 0.12);
+  /* Upper band: luminous warm dawn sky — same family as 朝阳, not cold blue / empty fog */
+  --sky-top: oklch(0.94 0.055 72);
+  --sky-mid: oklch(0.84 0.09 62);
+  --sky-low: oklch(0.5 0.07 48);
+  --sun: oklch(0.96 0.14 75 / 0.5);
+  --bloom: oklch(0.92 0.12 68 / 0.48);
+  --shade: oklch(0.45 0.05 42 / 0.14);
   --title-shadow: none;
   --text-scrim: oklch(0.99 0.01 75 / 0.55);
   --brand: oklch(0.28 0.05 45);
@@ -53,36 +54,39 @@
   border-color: color-mix(in oklch, var(--input) 65%, transparent);
 }
 
-/* —— Day parts: clear sky on top; warmth only mid/low (no gray fog) —— */
+/* —— Day parts: upper sky shares 朝阳色系；有日照光晕，无冷蓝、无空雾 —— */
 html[data-day="dawn"] {
-  --sky-top: oklch(0.97 0.025 225);
-  --sky-mid: oklch(0.9 0.07 75);
-  --sky-low: oklch(0.5 0.08 50);
-  --bloom: oklch(0.96 0.08 70 / 0.32);
-  --shade: oklch(0.5 0.06 45 / 0.14);
+  --sky-top: oklch(0.945 0.06 70);
+  --sky-mid: oklch(0.85 0.1 58);
+  --sky-low: oklch(0.48 0.08 45);
+  --sun: oklch(0.97 0.16 72 / 0.55);
+  --bloom: oklch(0.93 0.13 65 / 0.52);
+  --shade: oklch(0.48 0.06 42 / 0.15);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.28 0.05 45);
   --primary: oklch(0.48 0.12 48);
 }
 
 html[data-day="day"] {
-  --sky-top: oklch(0.97 0.035 235);
-  --sky-mid: oklch(0.91 0.04 95);
-  --sky-low: oklch(0.58 0.05 55);
-  --bloom: oklch(0.97 0.04 90 / 0.22);
-  --shade: oklch(0.55 0.04 50 / 0.1);
-  --background: oklch(0.94 0.02 95);
+  --sky-top: oklch(0.95 0.045 78);
+  --sky-mid: oklch(0.88 0.07 70);
+  --sky-low: oklch(0.56 0.06 52);
+  --sun: oklch(0.97 0.1 78 / 0.4);
+  --bloom: oklch(0.94 0.09 72 / 0.38);
+  --shade: oklch(0.52 0.04 48 / 0.12);
+  --background: oklch(0.92 0.025 78);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.27 0.045 50);
   --primary: oklch(0.47 0.11 48);
 }
 
 html[data-day="dusk"] {
-  --sky-top: oklch(0.94 0.035 230);
-  --sky-mid: oklch(0.82 0.07 55);
-  --sky-low: oklch(0.44 0.07 35);
-  --bloom: oklch(0.93 0.08 60 / 0.3);
-  --shade: oklch(0.4 0.06 35 / 0.14);
+  --sky-top: oklch(0.9 0.07 55);
+  --sky-mid: oklch(0.76 0.1 48);
+  --sky-low: oklch(0.42 0.08 35);
+  --sun: oklch(0.92 0.15 55 / 0.48);
+  --bloom: oklch(0.88 0.12 50 / 0.45);
+  --shade: oklch(0.38 0.06 32 / 0.16);
   --camp-image: url("/images/camp-horizon.png");
   --brand: oklch(0.26 0.05 40);
   --primary: oklch(0.46 0.13 40);
@@ -141,15 +145,15 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   color: var(--foreground);
   background-color: var(--background);
-  /* Clear sky holds the upper half; bloom/shade stay soft and low */
+  /* One continuous dawn: sun wash in upper sky → warm mid → camp low */
   background-image:
-    radial-gradient(ellipse 42% 28% at 82% 18%, var(--bloom), transparent 70%),
-    radial-gradient(ellipse 40% 30% at 14% 92%, var(--shade), transparent 58%),
+    radial-gradient(ellipse 28% 26% at 74% 6%, var(--sun), transparent 68%),
+    radial-gradient(ellipse 48% 38% at 80% 20%, var(--bloom), transparent 72%),
+    radial-gradient(ellipse 40% 32% at 14% 92%, var(--shade), transparent 58%),
     linear-gradient(
       180deg,
       var(--sky-top) 0%,
-      var(--sky-top) 38%,
-      var(--sky-mid) 68%,
+      var(--sky-mid) 48%,
       var(--sky-low) 100%
     );
   background-attachment: fixed;
@@ -159,8 +163,8 @@ html[data-bg-source="custom"] body {
   background-image:
     linear-gradient(
       180deg,
-      oklch(0.98 0.02 230 / 0.12) 0%,
-      transparent 40%
+      oklch(0.97 0.04 75 / 0.18) 0%,
+      transparent 38%
     ),
     var(--custom-full-bg);
   background-size: auto, cover;

@@ -230,7 +230,7 @@ export function AppShell({
         aria-hidden
       />
       <div
-        className="ambient-orb right-[-3rem] top-20 size-40 bg-[oklch(0.88_0.05_230)] opacity-22"
+        className="ambient-orb right-[-2rem] top-16 size-44 bg-[oklch(0.9_0.12_70)] opacity-35"
         aria-hidden
       />
 
