@@ -30,18 +30,22 @@ asin-lens/
 
 | 分支 | 知识库 | 范围 |
 |------|--------|------|
-| `mod/contracts` | 01-contracts | 类型、API 约定、优先级 schema |
-| `mod/frontend` | 02-frontend | 仪表盘、氛围、报错清单 UI |
-| `mod/collect` | 03-collect | MCP、metrics、collect API |
-| `mod/report` | 04-report | 日报、format、邮件/飞书 |
-| `mod/infra` | 05-infra | Schema、Vercel、env |
-| `mod/workflow` | 06-git-workflow | 仅文档/规则，不改业务 |
+| `mod/contracts` | 01-contracts | 角色 own/competitor、keywordTraffic、IndustryOpt |
+| `mod/frontend` | 02-frontend | 我的/竞品两区、行业优化报告入口 |
+| `mod/collect` | 03-collect + vendor/sif | SS+Sif 工具链、清洗核对 |
+| `mod/report` | 04-report | 异动日报 vs 行业/优化报告 |
+| `mod/infra` | 05-infra | Schema 0001、pooler、migrate |
+| `mod/vendor` | docs/vendor/sif-mcp | Sif 官方 schema（不臆造字段） |
+| `mod/workflow` | 06 + 07-changelog | 规则/总结，不改业务 |
 
-## 开聊模板
+## 开聊模板（复制）
 
 ```
 按 ASIN Lens 守则（全局 SOP）。
-本区块：mod/collect
-必读：docs/kb/01-contracts.md + docs/kb/03-collect.md
-先给行动计划，等我确认执行后再改代码。不要 push。
+本区块：mod/<名>
+必读：docs/kb/01-contracts.md + docs/kb/<对应文件>
+背景：docs/kb/07-changelog-mod-contracts.md
+当前分支：mod/contracts（或说明要切到哪个 mod/*）
+先给行动计划，等我确认执行后再改代码。
+push 前必须先写/更新 docs/kb/07-changelog-*.md，再与规则一并 push。
 ```
