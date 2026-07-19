@@ -63,6 +63,7 @@ function normalizeShare(value: unknown): number | null {
 
 function listKeywordArrays(data: Record<string, unknown>): unknown[] {
   const keys = [
+    "top_keywords",
     "keywords",
     "topKeywords",
     "trafficKeywords",
@@ -83,6 +84,9 @@ function listKeywordArrays(data: Record<string, unknown>): unknown[] {
       if (Array.isArray(value)) rows.push(...value);
     }
     if (rows.length > 0) return rows;
+  }
+  if (isObject(data.secondary_signals) && Array.isArray(data.secondary_signals.keywords)) {
+    return data.secondary_signals.keywords;
   }
   return [];
 }
@@ -117,19 +121,22 @@ function parseKeywordItem(
   ]);
   if (!keyword) return null;
 
-  const cvrRaw = toNumber(
-    item.cvr ??
-      item.conversionRate ??
-      item.purchaseRate ??
-      item.转化率 ??
-      item.convRate ??
-      item.cr,
-  );
+  const cvrRaw =
+    source === "Sif"
+      ? toNumber(
+          item.cvr ??
+            item.conversionRate ??
+            item.转化率 ??
+            item.convRate ??
+            item.cr,
+        )
+      : null;
 
   return {
     keyword: keyword.trim(),
     share: normalizeShare(
       item.share ??
+        item.click_share ??
         item.trafficShare ??
         item.traffic_share ??
         item.trafficPercentage ??
@@ -147,7 +154,8 @@ function parseKeywordItem(
         item.日均流量 ??
         item.volume,
     ),
-    cvr: source === "Sif" ? cvrRaw : null,
+    // Sif schema 无 ASIN×词转化率；SellerSprite purchaseRate 不写入 cvr
+    cvr: cvrRaw,
     bid: toNumber(
       item.bid ?? item.竞价 ?? item.cpc ?? item.suggestedBid ?? item.bidPrice,
     ),
@@ -237,7 +245,13 @@ function availabilityFromSifFirst(
   label: string,
 ): MetricAvailability {
   if (value === null) {
-    return { status: "no_result", reason: `Sif 未返回该词${label}` };
+    return {
+      status: "no_result",
+      reason:
+        label === "转化率"
+          ? "Sif 无 ASIN×词转化率字段（schema 边界）"
+          : `Sif 未返回该词${label}`,
+    };
   }
   if (dailyTraffic !== null && dailyTraffic < KEYWORD_DAILY_TRAFFIC_MIN) {
     return {

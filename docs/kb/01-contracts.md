@@ -20,11 +20,18 @@
 ### `keywordTraffic`（词级）
 
 定义：`src/lib/research/keyword-traffic.ts`  
-- 流量来源字段：Sif / 卖家精灵  
-- **转化率只用 Sif**；无返回 → `no_result`（原因：Sif 未返回）  
-- 辅助：词日均流量 &lt; 50 → 转化/竞价/花费亦 `no_result`  
-- 竞价/花费：无源 → `no_result`  
-- 流量结构：前三词份额合计 ≥ 70% → `concentrated`；否则 `dispersed`（报告只下结论，深挖另区）
+官方能力边界真源：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`  
+
+| 字段 | 主源 | 说明 |
+|------|------|------|
+| share | Sif `market_get_asin_keyword_signals` | `click_share` / `traffic_share` |
+| dailyTraffic / bid | SellerSprite `traffic_keyword` | `searches` / `bid`；补缺 |
+| cvr | — | **Sif schema 无 ASIN×词转化率**；报告 `no_result`；我的 ASIN 用手填 `manual_cvr_60d` 作基准 |
+| spend | — | Sif/SS 常无金额 → `no_result` |
+| 流量来源 | Sif `ops_get_listing_traffic_overview` | 自然 vs 广告（SP/SB/SBV） |
+
+流量结构：前三词份额合计 ≥ 70% → `concentrated`；否则 `dispersed`（报告只下结论，深挖另区）  
+Sif 入参用 **`country`**（非 marketplace）；关键词信号默认 `time_type=lately` + `time_value=7`。
 
 ## 源优先级 `SourcePriorityConfig`
 

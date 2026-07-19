@@ -7,11 +7,15 @@
 
 ## 单 ASIN 步骤
 
-1. 调 SellerSprite / Sif `asin_detail`（失败保留 error 进 raw）  
-2. `prepareMetricsForStorage(sources, priority)`（含 `keywordTraffic`：Sif 优先，CVR 仅 Sif）  
-3. Upsert `asin_snapshots`（含 `keyword_traffic`）  
-4. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
-5. 更新 `asins.lastSyncedAt`  
+1. SellerSprite `asin_detail`（`marketplace`）→ 标题/价/BSR  
+2. SellerSprite `traffic_keyword` → 词日均 searches / bid（可选）  
+3. Sif `market_get_asin_keyword_signals`（`country` + `time_type=lately` + `time_value=7`）→ 主词与份额  
+4. Sif `ops_get_listing_traffic_overview`（`country` + `timePieceType=latelyDay`）→ 流量来源  
+5. `prepareMetricsForStorage`（含 `keywordTraffic`）→ Upsert `asin_snapshots`  
+6. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
+7. 更新 `asins.lastSyncedAt`  
+
+Sif 能力边界见：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`（**无** `asin_detail`、**无** ASIN×词转化率）。
 
 ## 失败策略
 

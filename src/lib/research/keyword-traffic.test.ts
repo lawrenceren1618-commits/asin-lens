@@ -76,6 +76,9 @@ describe("keyword traffic", () => {
     expect(concentrated.pattern).toBe("concentrated");
     expect(concentrated.keywords[1].cvr.status).toBe("no_result");
     expect(concentrated.keywords[2].cvr.status).toBe("no_result");
+    if (concentrated.keywords[1].cvr.status === "no_result") {
+      expect(concentrated.keywords[1].cvr.reason).toContain("Sif");
+    }
     if (concentrated.keywords[2].cvr.status === "no_result") {
       expect(concentrated.keywords[2].cvr.reason).toContain(
         String(KEYWORD_DAILY_TRAFFIC_MIN),

@@ -61,6 +61,11 @@ function findItems(payload: unknown): unknown[] {
   if (Array.isArray(payload.data)) return payload.data;
   if (Array.isArray(payload.items)) return payload.items;
 
+  // Sif keyword signals: prefer full ranked list
+  if (Array.isArray(payload.top_keywords) && payload.top_keywords.length > 0) {
+    return payload.top_keywords;
+  }
+
   // Sif keyword signals: primary_signals.{declining,rising,...}[]
   if (isObject(payload.primary_signals)) {
     const rows: unknown[] = [];

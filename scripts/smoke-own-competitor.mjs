@@ -71,9 +71,28 @@ async function main() {
       }
     }
     if (sifKey) {
-      for (const tool of [
-        "market_get_asin_keyword_signals",
-        "ops_get_listing_traffic_overview",
+      for (const [tool, args] of [
+        [
+          "market_get_asin_keyword_signals",
+          {
+            asin,
+            country: MARKET,
+            time_type: "lately",
+            time_value: "7",
+            listingSearch: false,
+            topN: 50,
+          },
+        ],
+        [
+          "ops_get_listing_traffic_overview",
+          {
+            asin,
+            country: MARKET,
+            timePieceType: "latelyDay",
+            timePieceValue: "7",
+            isListingSearch: false,
+          },
+        ],
       ]) {
         try {
           const raw = await callTool(
@@ -81,7 +100,7 @@ async function main() {
             sifKey,
             { [sifHeader]: `${sifScheme}${sifKey}` },
             tool,
-            { asin, marketplace: MARKET },
+            args,
           );
           sources.push({ source: "Sif", tool, raw });
           console.log(`${asin} Sif ${tool}: ok`);

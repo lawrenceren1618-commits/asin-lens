@@ -95,10 +95,15 @@ async function collectOneAsin(
     // optional enrichment
   }
 
+  // Sif schema: country（非 marketplace）；time_type=lately + time_value=7|30
   try {
     const raw = await callSifTool("market_get_asin_keyword_signals", {
       asin: asin.asin,
-      marketplace: asin.market,
+      country: asin.market,
+      time_type: "lately",
+      time_value: "7",
+      listingSearch: false,
+      topN: 50,
     });
     sources.push({
       source: "Sif",
@@ -112,7 +117,10 @@ async function collectOneAsin(
   try {
     const raw = await callSifTool("ops_get_listing_traffic_overview", {
       asin: asin.asin,
-      marketplace: asin.market,
+      country: asin.market,
+      timePieceType: "latelyDay",
+      timePieceValue: "7",
+      isListingSearch: false,
     });
     sources.push({
       source: "Sif",
@@ -120,7 +128,7 @@ async function collectOneAsin(
       raw,
     });
   } catch {
-    // optional
+    // optional — 流量来源（自然/广告）
   }
 
   // ingest → clean (by priority) → verify → only then write DB
