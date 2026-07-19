@@ -1,8 +1,10 @@
 /**
- * Smoke test via real MCP client + clean/report (no DB write).
- * Usage: node --import ./scripts/smoke-register.mjs --import tsx scripts/smoke-own-competitor.mjs
+ * Smoke test: MCP → clean → industry/opt markdown (no DB).
+ * Usage: npx tsx scripts/smoke-own-competitor.mjs
  */
 import { config } from "dotenv";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 config({ path: ".env.local" });
 
@@ -10,9 +12,23 @@ const OWN = "B0CCRKDW1K";
 const COMPETITOR = "B0CBF4T1V3";
 const MARKET = "US";
 
+async function callTool(baseUrl, secret, extraHeaders, tool, args) {
+  const url = new URL(baseUrl);
+  url.searchParams.set("secret-key", secret);
+  const headers = { ...extraHeaders };
+  const client = new Client({ name: "asin-lens-smoke", version: "0.1.0" });
+  const transport = new StreamableHTTPClientTransport(url, {
+    requestInit: { headers },
+  });
+  try {
+    await client.connect(transport);
+    return await client.callTool({ name: tool, arguments: args });
+  } finally {
+    await client.close().catch(() => undefined);
+  }
+}
+
 async function main() {
-  const { callSellerSpriteTool } = await import("../src/lib/mcp/sellersprite.ts");
-  const { callSifTool } = await import("../src/lib/mcp/sif.ts");
   const { prepareMetricsForStorage } = await import(
     "../src/lib/research/metrics.ts"
   );
@@ -26,58 +42,71 @@ async function main() {
     "../src/lib/research/normalize.ts"
   );
 
+  const ssUrl =
+    process.env.SELLERSPRITE_MCP_URL ?? "https://mcp.sellersprite.com/mcp";
+  const ssKey = process.env.SELLERSPRITE_SECRET_KEY;
+  const sifUrl = process.env.SIF_MCP_URL ?? "https://mcp.sif.com/mcp";
+  const sifKey = process.env.SIF_SECRET_KEY;
+  const sifHeader = process.env.SIF_AUTH_HEADER ?? "secret-key";
+  const sifScheme = process.env.SIF_AUTH_SCHEME ?? "";
+
+  if (!ssKey && !sifKey) {
+    throw new Error("Missing SELLERSPRITE_SECRET_KEY / SIF_SECRET_KEY");
+  }
+
   async function fetchSources(asin) {
     const sources = [];
-    try {
-      const raw = await callSellerSpriteTool("asin_detail", {
-        asin,
-        marketplace: MARKET,
-      });
-      sources.push({ source: "SellerSprite", tool: "asin_detail", raw });
-      const items = normalizeToolResult(sources[0]);
-      console.log(
-        `${asin} SellerSprite fields:`,
-        items
-          .flatMap((i) => Object.keys(i.data))
-          .slice(0, 25)
-          .join(", ") || "(none)",
-      );
-    } catch (error) {
-      console.log(
-        `${asin} SellerSprite FAIL:`,
-        error instanceof Error ? error.message.slice(0, 200) : error,
-      );
-      sources.push({
-        source: "SellerSprite",
-        tool: "asin_detail",
-        raw: {
-          error: error instanceof Error ? error.message : String(error),
-        },
-      });
+    if (ssKey) {
+      try {
+        const raw = await callTool(ssUrl, ssKey, {}, "asin_detail", {
+          asin,
+          marketplace: MARKET,
+        });
+        sources.push({ source: "SellerSprite", tool: "asin_detail", raw });
+        const items = normalizeToolResult(sources[0]);
+        console.log(
+          `${asin} SS keys:`,
+          items.flatMap((i) => Object.keys(i.data)).slice(0, 20).join(", ") ||
+            "(none)",
+        );
+      } catch (error) {
+        console.log(
+          `${asin} SS FAIL:`,
+          error instanceof Error ? error.message.slice(0, 180) : error,
+        );
+        sources.push({
+          source: "SellerSprite",
+          tool: "asin_detail",
+          raw: {
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
+      }
     }
-
-    try {
-      const raw = await callSifTool("asin_detail", {
-        asin,
-        marketplace: MARKET,
-      });
-      sources.push({ source: "Sif", tool: "asin_detail", raw });
-      const items = normalizeToolResult(sources.at(-1));
-      console.log(
-        `${asin} Sif fields:`,
-        items
-          .flatMap((i) => Object.keys(i.data))
-          .slice(0, 25)
-          .join(", ") || "(none)",
-      );
-      console.log(`${asin} Sif raw preview:`, safeJson(raw, 500));
-    } catch (error) {
-      console.log(
-        `${asin} Sif FAIL:`,
-        error instanceof Error ? error.message.slice(0, 200) : error,
-      );
+    if (sifKey) {
+      try {
+        const raw = await callTool(
+          sifUrl,
+          sifKey,
+          { [sifHeader]: `${sifScheme}${sifKey}` },
+          "asin_detail",
+          { asin, marketplace: MARKET },
+        );
+        sources.push({ source: "Sif", tool: "asin_detail", raw });
+        const items = normalizeToolResult(sources.at(-1));
+        console.log(
+          `${asin} Sif keys:`,
+          items.flatMap((i) => Object.keys(i.data)).slice(0, 20).join(", ") ||
+            "(none)",
+        );
+        console.log(`${asin} Sif preview:`, safeJson(raw, 450));
+      } catch (error) {
+        console.log(
+          `${asin} Sif FAIL:`,
+          error instanceof Error ? error.message.slice(0, 180) : error,
+        );
+      }
     }
-
     return sources;
   }
 
