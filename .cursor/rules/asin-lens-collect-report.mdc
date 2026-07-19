@@ -1,0 +1,15 @@
+---
+description: 打开业务文件时加载对应知识库模块
+globs: src/lib/research/**/*.ts,src/app/api/collect/**/*.ts,src/app/api/cron/**/*.ts,src/app/api/reports/**/*.ts
+alwaysApply: false
+---
+
+# 采集 / 报告相关
+
+动手前阅读：
+
+- `docs/kb/01-contracts.md`（契约优先）
+- `docs/kb/03-collect.md`
+- `docs/kb/04-report.md`
+
+遵守清洗→核对→入库；导出前核对→再格式化。源优先级见 `source-priority` 与 `/rules`。

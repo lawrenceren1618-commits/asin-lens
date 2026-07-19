@@ -1,0 +1,11 @@
+---
+description: 数据库与部署相关时对齐基础设施知识库
+globs: src/lib/db/**/*.ts,drizzle/**/*.sql,vercel.json,.env.example
+alwaysApply: false
+---
+
+# 基础设施
+
+动手前阅读：`docs/kb/05-infra.md`
+
+改 Schema / SQL / 全局 env：**先行动计划，等「确认执行」**。禁止擅自 push。

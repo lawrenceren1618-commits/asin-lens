@@ -1,0 +1,13 @@
+---
+description: 前端与壳层改动时对齐 UI 知识库
+globs: src/components/**/*.tsx,src/app/**/page.tsx,src/app/globals.css
+alwaysApply: false
+---
+
+# 前端相关
+
+动手前阅读：`docs/kb/02-frontend.md`
+
+- 业务核心是调研记录与脉络，氛围/花语只做点缀
+- 上半区保持清朗；报错用清单便于逐项解决
+- 右侧模块树（`ModuleMap`）提醒整体结构，勿删
