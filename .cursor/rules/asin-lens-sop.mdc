@@ -31,5 +31,6 @@ alwaysApply: true
 ## Git
 
 - 单点通过后提醒本地 commit
+- **push 前必须先生成变更总结**（写入 `docs/kb/07-changelog-*.md`），与规则/kb 同步后再 push
 - **禁止**擅自 push / 发版；仅用户明确要求时再 push
 - 分支：`mod/<模块>`，与 `docs/kb/` 对齐

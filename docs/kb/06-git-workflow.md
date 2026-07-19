@@ -16,11 +16,12 @@
 2. `git checkout -b mod/<模块>`  
 3. 新对话粘贴开聊模板（见 INDEX）  
 4. Agent 出计划 → 你「确认执行」→ 再改代码  
-5. 本地 commit；不 push  
-6. 你下令发版时：Changelog + 版本名 → 再 push  
+5. 本地 commit；**push 前必须先写变更总结**（`docs/kb/07-changelog-*.md` 或等价），并与规则/kb 一并更新  
+6. 你下令 push / 发版时：总结已齐 → 再 push；发版另需 Changelog + 版本名确认  
 
 ## 禁止
 
 - 未确认改 Schema/跨模块契约  
-- 擅自 push / force push  
+- **无总结就 push**  
+- 擅自 force push  
 - 在一个对话里无边界地改所有模块  

@@ -11,6 +11,7 @@ asin-lens/
 ├── 04-report.md        ← 日报 · 行业优化报告 · 通知
 ├── 05-infra.md         ← DB · Cron · Env · 部署
 ├── 06-git-workflow.md  ← 分支命名 · commit · 发版
+├── 07-changelog-*.md   ← 模块变更总结（push 前必写）
 └── ../vendor/sif-mcp/  ← Sif MCP 官方 tool schema
 ```
 
