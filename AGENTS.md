@@ -15,11 +15,12 @@
 
 进度：`docs/kb/07-changelog-*.md`
 
-1. **全局守则**（含上表 + push=commit→push）：`.cursor/rules/asin-lens-sop.mdc`（alwaysApply）
-2. **知识库树**：[`docs/kb/INDEX.md`](docs/kb/INDEX.md)
-3. **契约优先**：[`docs/kb/01-contracts.md`](docs/kb/01-contracts.md)
-4. **Sif 能力边界**：[`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`](docs/vendor/sif-mcp/sif-mcp-tool-schema.json)
-5. **变更总结**：对应模块的 [`docs/kb/07-changelog-*.md`](docs/kb/07-changelog-mod-report.md)
+1. **全局守则**（模块树 + 洁癖底线 + 本地入库/按需 push）：`.cursor/rules/asin-lens-sop.mdc`（alwaysApply）  
+2. **知识库树**：[`docs/kb/INDEX.md`](docs/kb/INDEX.md)  
+3. **契约优先**：[`docs/kb/01-contracts.md`](docs/kb/01-contracts.md)  
+4. **Sif 能力边界**：[`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`](docs/vendor/sif-mcp/sif-mcp-tool-schema.json)  
+5. **变更总结**：对应模块的 [`docs/kb/07-changelog-*.md`](docs/kb/07-changelog-mod-report.md)（可只本地）  
+6. **洁癖收尾**：个人 skill `neat-freak`（说「洁癖」）；对齐结果默认本地入库  
 
 ## 文件规则（打开相关代码时）
 

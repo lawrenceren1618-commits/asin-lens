@@ -20,10 +20,16 @@
 
 - 移除客户可见的 `ModuleMap`；模块树**永不进前台**，只在全局规则 / `AGENTS.md` / kb 里方便对号入座、查未优化区块  
 - **模块树一眼看**：`asin-lens-sop.mdc`（alwaysApply）置顶 + `AGENTS.md`  
-- **`push` 口令**：补 changelog（若需）→ 本地 commit → push  
+- **`push` 口令**：只上传**影响前端使用效果**的代码；规则/kb/洁癖默认**本地入库**  
 - **`准备上新`**：估上下文；≥约 70% 则交接 → 按下一任务拆模块并生成开聊模板  
 - `SideQuote` 中英字号上调；日中/暮色参照朝阳微调  
 - **上半区远景**：`distant-vista.png` 作静默点缀（低饱和/半透明）；忌海报抢戏；下半营地  
+- **洁癖**：个人 skill `neat-freak` + 全局「洁癖底线」；收尾结果默认本地入库  
+
+## 工作区
+
+- 现役工程路径：`C:\Users\lawre\Desktop\asin-lens`（自 `.cursor\Cursor-skills\asin-lens` 迁出）  
+- 旧路径副本若仍存在，确认真源后再删，避免双份混淆  
 
 ## 主要文件
 
