@@ -346,7 +346,7 @@ h2,
     inset 0 1px 0 color-mix(in oklch, var(--foreground) 8%, transparent);
 }
 
-/* Distant vista: mountains / river / waterfall fill mid–upper (not empty fog) */
+/* Distant vista: quiet landform backdrop — present, never a hero poster */
 .distant-scene {
   pointer-events: none;
   position: absolute;
@@ -356,37 +356,40 @@ h2,
   background:
     linear-gradient(
       to bottom,
-      transparent 0%,
-      transparent 58%,
-      color-mix(in oklch, var(--sky-mid) 40%, transparent) 82%,
-      color-mix(in oklch, var(--sky-low) 70%, transparent) 100%
+      color-mix(in oklch, var(--sky-top) 72%, transparent) 0%,
+      color-mix(in oklch, var(--sky-top) 35%, transparent) 28%,
+      transparent 52%,
+      color-mix(in oklch, var(--sky-mid) 45%, transparent) 78%,
+      color-mix(in oklch, var(--sky-low) 75%, transparent) 100%
     ),
-    var(--distant-image) center 28% / cover no-repeat;
-  opacity: 0.95;
+    var(--distant-image) center 30% / cover no-repeat;
+  opacity: 0.38;
+  filter: saturate(0.55) brightness(1.08) contrast(0.92);
   mask-image: linear-gradient(
     to bottom,
     black 0%,
-    black 62%,
-    transparent 92%
+    black 55%,
+    transparent 88%
   );
 }
 
 html[data-bg-source="custom"] .distant-scene {
-  opacity: 0.28;
+  opacity: 0.16;
 }
 
 html[data-day="dawn"] .distant-scene {
-  opacity: 1;
+  opacity: 0.4;
+  filter: saturate(0.58) brightness(1.1) contrast(0.92);
 }
 
 html[data-day="day"] .distant-scene {
-  opacity: 0.94;
-  filter: brightness(1.04) saturate(1.03);
+  opacity: 0.34;
+  filter: saturate(0.5) brightness(1.12) contrast(0.9);
 }
 
 html[data-day="dusk"] .distant-scene {
-  opacity: 0.92;
-  filter: saturate(1.06) brightness(0.97);
+  opacity: 0.36;
+  filter: saturate(0.55) brightness(1.02) contrast(0.92);
 }
 
 .camp-scene {
@@ -394,12 +397,13 @@ html[data-day="dusk"] .distant-scene {
   position: absolute;
   z-index: 2;
   inset: auto 0 0 0;
-  height: min(46vh, 460px);
+  height: min(42vh, 420px);
   background:
     linear-gradient(to top, color-mix(in oklch, var(--sky-low) 70%, transparent) 0%, transparent 52%),
     var(--camp-image) center bottom / cover no-repeat;
-  opacity: 0.78;
-  mask-image: linear-gradient(to top, black 28%, transparent 100%);
+  opacity: 0.62;
+  filter: saturate(0.85) brightness(1.02);
+  mask-image: linear-gradient(to top, black 24%, transparent 100%);
 }
 
 html[data-bg-source="custom"] .camp-scene {
@@ -408,17 +412,17 @@ html[data-bg-source="custom"] .camp-scene {
 }
 
 html[data-day="dawn"] .camp-scene {
-  opacity: 0.82;
+  opacity: 0.68;
 }
 
 html[data-day="day"] .camp-scene {
-  opacity: 0.78;
-  filter: brightness(1.04) saturate(1.04);
+  opacity: 0.58;
+  filter: saturate(0.8) brightness(1.05);
 }
 
 html[data-day="dusk"] .camp-scene {
-  opacity: 0.8;
-  filter: saturate(1.06) brightness(0.96);
+  opacity: 0.64;
+  filter: saturate(0.85) brightness(0.98);
 }
 
 html[data-ink="dark"] .surface-panel {
