@@ -71,3 +71,8 @@
 - `keywordTraffic` 合并仍固定流量侧 Sif 主、SS 补缺；与上表一致
 - localStorage 升为 `asin-lens-source-priority-v2`（旧 v1 不再读取，避免无覆盖旧配置）
 - 契约见 `01-contracts.md`「源优先级」；`/rules` 文案同步
+
+## 2026-07-21 — 创建项目 API 错误可读
+
+- `apiFetch`：空/非 JSON 响应不再抛原生 `json()` 异常；401/5xx 给中文提示
+- `POST/GET /api/projects`：捕获 DB 失败，提示检查 Transaction pooler（6543）
