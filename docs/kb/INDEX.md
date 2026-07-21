@@ -22,7 +22,9 @@ asin-lens/
 
 | 规则文件 | always / globs | 对齐 |
 |----------|----------------|------|
-| `asin-lens-sop.mdc` | always | 产品中心 + SOP + 洁癖底线 + push / 上新 |
+| `asin-lens-sop.mdc` | always | 业务：模块组成 + 跨模块影响（须 push） |
+| （本机）`asin-lens-chat-hygiene.mdc` | always · 用户规则 | 对话卫生 / 省上下文（**不 push**） |
+
 | `asin-lens-contracts.mdc` | contracts/types | 01-contracts |
 | `asin-lens-collect-report.mdc` | research/api | 03 + 04 |
 | `asin-lens-frontend.mdc` | components/pages | 02-frontend |
@@ -49,5 +51,5 @@ asin-lens/
 必读：docs/kb/01-contracts.md + docs/kb/<对应文件>
 背景：docs/kb/07-changelog-*.md
 先给行动计划，等我确认执行后再改代码。
-我说 push = 只上传影响前端使用效果的代码；规则/kb 本地入库即可。
+我说 push = 上传业务组成部分与跨模块规则；对话卫生仅本机。
 ```
