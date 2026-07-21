@@ -4,7 +4,8 @@ import {
   parseSourcePriority,
 } from "@/lib/research/source-priority";
 
-const PRIORITY_KEY = "asin-lens-source-priority-v1";
+/** v2：默认「流量 Sif / 其余 SS」；旧 v1 键忽略，避免沿用无字段覆盖的旧配置 */
+const PRIORITY_KEY = "asin-lens-source-priority-v2";
 const RESOLVED_ISSUES_KEY = "asin-lens-resolved-issues-v1";
 
 export function loadSourcePriority(): SourcePriorityConfig {

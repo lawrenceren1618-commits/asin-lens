@@ -64,3 +64,10 @@
 
 `npx tsx scripts/smoke-own-competitor.mjs`  
 样例：我的 `B0CCRKDW1K` / 竞品 `B0CBF4T1V3` — 标题价带与分散型流量结构可出；词 CVR 按边界无结果。
+
+## 2026-07-21 — 源优先级默认：流量 Sif / 其余 SS
+
+- `DEFAULT_SOURCE_PRIORITY`：全局 `SellerSprite → Sif`；字段覆盖 `traffic` / `topKeywords` 为 `Sif → SellerSprite`
+- `keywordTraffic` 合并仍固定流量侧 Sif 主、SS 补缺；与上表一致
+- localStorage 升为 `asin-lens-source-priority-v2`（旧 v1 不再读取，避免无覆盖旧配置）
+- 契约见 `01-contracts.md`「源优先级」；`/rules` 文案同步

@@ -19,7 +19,7 @@ alwaysApply: true
 | **collect** | `03-collect` + vendor | SS+Sif 采集 · 清洗核对 | `mod/collect` |
 | **report** | `04-report` | 异动日报 ≠ 行业/优化报告 | `mod/report` |
 | **infra** | `05-infra` | Schema · pooler · migrate | `mod/infra` |
-| **vendor** | `docs/vendor/sif-mcp` | Sif 官方 schema，禁止臆造字段 | `mod/vendor` |
+| **vendor** | `docs/vendor/sif-mcp` + `sellersprite-mcp` | Sif/SS 官方 schema，禁止臆造字段 | `mod/vendor` |
 
 进度摘要：`docs/kb/07-changelog-*.md` · 全索引：`docs/kb/INDEX.md`
 

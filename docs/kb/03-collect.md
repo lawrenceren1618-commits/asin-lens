@@ -15,7 +15,12 @@
 6. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
 7. 更新 `asins.lastSyncedAt`  
 
-Sif 能力边界见：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`（**无** `asin_detail`、**无** ASIN×词转化率）。
+能力边界（禁止臆造字段）：
+
+- **SellerSprite**：`docs/vendor/sellersprite-mcp/`（在用 `asin_detail` + `traffic_keyword`；站点参数 **`marketplace`**；`purchaseRate` 不入 cvr）
+- **Sif**：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`（**无** `asin_detail`、**无** ASIN×词转化率；站点参数 **`country`**）
+
+注意：SS `traffic_source` = 关键词流向 ≠ Sif Listing 自然/广告结构。
 
 ## 失败策略
 

@@ -11,7 +11,7 @@
 | `mod/collect` | 03 + vendor | SS+Sif 采集 · 清洗 |
 | `mod/report` | 04 | 异动日报 ≠ 行业/优化报告 |
 | `mod/infra` | 05 | Schema · pooler · migrate |
-| `mod/vendor` | vendor/sif-mcp | Sif 能力边界 |
+| `mod/vendor` | vendor/sif-mcp + sellersprite-mcp | Sif/SS 能力边界 |
 
 进度：`docs/kb/07-changelog-*.md`
 
@@ -19,8 +19,9 @@
 2. **知识库**：[`docs/kb/INDEX.md`](docs/kb/INDEX.md)  
 3. **契约**：[`docs/kb/01-contracts.md`](docs/kb/01-contracts.md)  
 4. **Sif 边界**：[`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`](docs/vendor/sif-mcp/sif-mcp-tool-schema.json)  
-5. **变更总结**：[`docs/kb/07-changelog-*.md`](docs/kb/07-changelog-mod-report.md)  
-6. **对话卫生（本机，不 push）**：`~/.cursor/rules/asin-lens-chat-hygiene.mdc` · skill `neat-freak`  
+5. **SellerSprite 边界**：[`docs/vendor/sellersprite-mcp/README.md`](docs/vendor/sellersprite-mcp/README.md)（目录 JSON + 全文 API）  
+6. **变更总结**：[`docs/kb/07-changelog-*.md`](docs/kb/07-changelog-mod-report.md)  
+7. **对话卫生（本机，不 push）**：`~/.cursor/rules/asin-lens-chat-hygiene.mdc` · skill `neat-freak`  
 
 ## 文件规则（打开相关代码时 · 业务）
 

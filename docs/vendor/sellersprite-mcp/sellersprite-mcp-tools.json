@@ -1,0 +1,397 @@
+{
+  "$schema_comment": "SellerSprite MCP tool catalog for ASIN Lens. Full docs: sellersprite-mcp-api.md. Source: https://open.sellersprite.com/api",
+  "vendor": "SellerSprite",
+  "siteParam": "marketplace",
+  "markets": ["US", "JP", "UK", "DE", "FR", "IT", "ES", "CA", "IN"],
+  "auth": "secret-key",
+  "restBase": "https://api.sellersprite.com",
+  "mcpDefaultUrl": "https://mcp.sellersprite.com/mcp",
+  "asinLens": {
+    "inUse": ["asin_detail", "traffic_keyword"],
+    "doNotMapToCvr": ["purchaseRate"],
+    "notes": [
+      "Use marketplace (not country).",
+      "traffic_source is keyword-flow, not listing organic/ad mix (use Sif ops_get_listing_traffic_overview for that).",
+      "purchaseRate must not be written to keywordTraffic.cvr."
+    ]
+  },
+  "tools": [
+    {
+      "name": "competitor_lookup",
+      "group": "product",
+      "method": "POST",
+      "path": "/v1/product/competitor-lookup",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "product_research",
+      "group": "product",
+      "method": "POST",
+      "path": "/v1/product/research",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "asin_detail",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/asin/{marketplace}/{asin}",
+      "required": ["marketplace", "asin"],
+      "keyResponseFields": [
+        "title",
+        "price",
+        "bsrRank",
+        "sellerName",
+        "brand",
+        "rating",
+        "ratings",
+        "parent",
+        "variationList"
+      ],
+      "asinLens": "collect_primary"
+    },
+    {
+      "name": "keyword_miner",
+      "group": "keyword",
+      "method": "POST",
+      "path": "/v1/keyword/miner",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "product_node",
+      "group": "product",
+      "method": "GET",
+      "path": "/v1/product/node",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "asin_coupon_trend",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/asin/{marketplace}/{asin}/coupon-trend",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "asin_detail_with_coupon_trend",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/asin/{marketplace}/{asin}/with-coupon-trend",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "asin_prediction",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/sales/prediction/asin",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "bsr_prediction",
+      "group": "keyword",
+      "method": "GET",
+      "path": "/v1/sales/prediction/bsr",
+      "required": ["marketplace", "bsr", "categoryId"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_keyword",
+      "group": "traffic",
+      "method": "POST",
+      "path": "/v1/traffic/keyword",
+      "required": ["marketplace", "asin"],
+      "keyResponseFields": [
+        "items.keyword",
+        "items.searches",
+        "items.bid",
+        "items.calculatedWeeklySearches",
+        "items.trafficPercentage",
+        "items.purchaseRate"
+      ],
+      "mapForKeywordTraffic": {
+        "dailyTraffic": ["searches", "calculatedWeeklySearches"],
+        "bid": ["bid"],
+        "cvr": "do_not_map_purchaseRate"
+      },
+      "asinLens": "collect_enrichment"
+    },
+    {
+      "name": "keepa_info",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/keepa/{marketplace}/{asin}",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "keyword_research",
+      "group": "keyword",
+      "method": "POST",
+      "path": "/v1/keyword-research",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "keyword_research_trends",
+      "group": "keyword",
+      "method": "POST",
+      "path": "/v1/keyword-research/trends",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_keyword_stat",
+      "group": "traffic",
+      "method": "GET",
+      "path": "/v1/traffic/keyword/stat/{marketplace}/{asin}",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_listing_stat",
+      "group": "traffic",
+      "method": "GET",
+      "path": "/v1/traffic/listing/stat/{marketplace}/{asin}",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_listing",
+      "group": "traffic",
+      "method": "POST",
+      "path": "/v1/traffic/listing",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_source",
+      "group": "traffic",
+      "method": "POST",
+      "path": "/v1/traffic/source",
+      "required": ["marketplace"],
+      "meaning": "keyword-flow / 关键词流向 — NOT listing organic vs ad mix",
+      "asinLens": "unused_do_not_confuse_with_sif_traffic_overview"
+    },
+    {
+      "name": "aba_research_weekly",
+      "group": "aba",
+      "method": "POST",
+      "path": "/v1/aba/research/weekly",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "aba_research_monthly",
+      "group": "aba",
+      "method": "POST",
+      "path": "/v1/aba/research/monthly",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "keyword_order",
+      "group": "keyword",
+      "method": "POST",
+      "path": "/v1/keyword/order",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "review",
+      "group": "aba",
+      "method": "POST",
+      "path": "/v1/review",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_research",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/research",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_research_statistics",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/research/statistics",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_product_concentration",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/product-concentration",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_brand_concentration",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/brand-concentration",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_seller_concentration",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/seller-concentration",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_seller_type_concentration",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/seller-type-concentration",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_seller_country_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/seller-country-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_product_demand_trend",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/product-demand-trend",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_listing_date_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/listing-date-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_listing_trend_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/listing-trend-distribution",
+      "required": [],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_ratings_count_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/ratings-count-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_rating_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/rating-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_price_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/price-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "market_ebc_distribution",
+      "group": "market",
+      "method": "POST",
+      "path": "/v1/market/ebc-distribution",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "traffic_extend",
+      "group": "traffic",
+      "method": "POST",
+      "path": "/v1/traffic/extend",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "aba_research_trend",
+      "group": "aba",
+      "method": "POST",
+      "path": "/v1/aba/research/trend",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "google_trend",
+      "group": "aba",
+      "method": "GET",
+      "path": "/v1/google/trend",
+      "required": ["marketplace"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "asin_sales_trend",
+      "group": "asin",
+      "method": "GET",
+      "path": "/v1/asin/{marketplace}/{asin}/sales-trend",
+      "required": ["marketplace", "asin"],
+      "asinLens": "unused"
+    },
+    {
+      "name": "trademark_country_list",
+      "group": "trademark",
+      "method": "GET",
+      "path": "/v1/trademark/country-list",
+      "required": [],
+      "asinLens": "unused"
+    },
+    {
+      "name": "trademark_detail",
+      "group": "trademark",
+      "method": "GET",
+      "path": "/v1/trademark/detail",
+      "required": [],
+      "asinLens": "unused"
+    },
+    {
+      "name": "trademark_list",
+      "group": "trademark",
+      "method": "POST",
+      "path": "/v1/trademark/list",
+      "required": [],
+      "asinLens": "unused"
+    },
+    {
+      "name": "trademark_stats",
+      "group": "trademark",
+      "method": "POST",
+      "path": "/v1/trademark/stats",
+      "required": [],
+      "asinLens": "unused"
+    }
+  ],
+  "httpErrors": {
+    "400": "bad request",
+    "401": "invalid secret-key",
+    "403": "forbidden",
+    "429": "rate limited",
+    "500": "server error",
+    "503": "unavailable"
+  }
+}

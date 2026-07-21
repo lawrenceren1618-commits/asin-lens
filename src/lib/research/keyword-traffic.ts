@@ -168,7 +168,7 @@ function parseKeywordItem(
 
 /**
  * 从各 MCP SourceResult 抽取词级流量（避免 Object.assign 压扁多行）。
- * Sif 优先；CVR 仅 Sif。
+ * 产品规则：流量侧 Sif 优先，SellerSprite 补 searches/bid；CVR 不写入。
  */
 export function collectKeywordTrafficFromSources(
   sources: SourceResult[],

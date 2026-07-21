@@ -63,6 +63,46 @@ describe("metrics clean + verify", () => {
     expect(cleaned.title).toBe("From Sif");
   });
 
+  it("default: non-traffic prefers SellerSprite, traffic prefers Sif", () => {
+    const cleaned = cleanToMetrics([
+      {
+        source: "SellerSprite",
+        tool: "asin_detail",
+        raw: {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "SS Title",
+                price: 10,
+                traffic: 100,
+              }),
+            },
+          ],
+        },
+      },
+      {
+        source: "Sif",
+        tool: "detail",
+        raw: {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                title: "Sif Title",
+                price: 99,
+                traffic: 999,
+              }),
+            },
+          ],
+        },
+      },
+    ]);
+    expect(cleaned.title).toBe("SS Title");
+    expect(cleaned.price).toBe(10);
+    expect(cleaned.traffic).toBe(999);
+  });
+
   it("rejects empty garbage before storage", () => {
     expect(() =>
       prepareMetricsForStorage([

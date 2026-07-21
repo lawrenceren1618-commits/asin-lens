@@ -12,8 +12,10 @@ import {
 } from "@/lib/client-settings";
 import {
   BUILTIN_SOURCES,
+  DEFAULT_SOURCE_PRIORITY,
   FIELD_LABEL,
   METRIC_FIELDS,
+  TRAFFIC_METRIC_FIELDS,
   type MetricField,
   type SourcePriorityConfig,
 } from "@/lib/research/source-priority";
@@ -40,8 +42,8 @@ const ROADMAP = [
 
 export function RulesDashboard() {
   const [config, setConfig] = useState<SourcePriorityConfig>(() => ({
-    order: ["SellerSprite", "Sif"],
-    fields: {},
+    order: [...DEFAULT_SOURCE_PRIORITY.order],
+    fields: { ...DEFAULT_SOURCE_PRIORITY.fields },
   }));
   const [newSource, setNewSource] = useState("");
   const [fieldEdit, setFieldEdit] = useState<MetricField | "">("");
@@ -118,7 +120,8 @@ export function RulesDashboard() {
           <div>
             <h2 className="text-base font-semibold">源优先级</h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              越靠前越优先。同一字段多源都有值时，取排序更前的源。可手动添加自定义源名（供日后接入）。
+              越靠前越优先。同一字段多源都有值时，取排序更前的源。产品默认：流量相关（含词流量）Sif
+              优先，标题/价/销量等其余字段 SellerSprite 优先；冲突照此执行。可手动调整或添加自定义源名。
             </p>
           </div>
 
@@ -204,7 +207,11 @@ export function RulesDashboard() {
               例如价格只用 SellerSprite，销量优先 Sif。不设则跟随全局顺序。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {METRIC_FIELDS.map((field) => (
+              {METRIC_FIELDS.map((field) => {
+                const isTraffic = (
+                  TRAFFIC_METRIC_FIELDS as readonly string[]
+                ).includes(field);
+                return (
                 <button
                   key={field}
                   type="button"
@@ -218,9 +225,11 @@ export function RulesDashboard() {
                   }`}
                 >
                   {FIELD_LABEL[field]}
+                  {isTraffic ? " · 流量" : ""}
                   {config.fields?.[field] ? " · 已覆盖" : ""}
                 </button>
-              ))}
+                );
+              })}
             </div>
 
             {fieldEdit ? (

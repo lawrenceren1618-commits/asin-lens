@@ -15,7 +15,9 @@ asin-lens/
 ├── 05-infra.md         ← DB · Cron · Env · 部署
 ├── 06-git-workflow.md  ← 分支命名 · commit · 发版
 ├── 07-changelog-*.md   ← 模块变更总结（push 前必写）
-└── ../vendor/sif-mcp/  ← Sif MCP 官方 tool schema
+└── ../vendor/
+    ├── sif-mcp/           ← Sif MCP 官方 tool schema
+    └── sellersprite-mcp/  ← 卖家精灵 MCP（README + tools.json + 全文 API）
 ```
 
 ## Cursor 规则 ↔ 知识库
@@ -29,7 +31,7 @@ asin-lens/
 | `asin-lens-collect-report.mdc` | research/api | 03 + 04 |
 | `asin-lens-frontend.mdc` | components/pages | 02-frontend |
 | `asin-lens-infra.mdc` | db/drizzle | 05-infra |
-| `asin-lens-vendor.mdc` | vendor + mcp | sif-mcp-tool-schema |
+| `asin-lens-vendor.mdc` | vendor + mcp | sif-mcp + sellersprite-mcp |
 
 ## 建议 Git 分支 ↔ 知识库
 
@@ -40,7 +42,7 @@ asin-lens/
 | `mod/collect` | 03-collect + vendor/sif | SS+Sif 工具链、清洗核对 |
 | `mod/report` | 04-report | 异动日报 vs 行业/优化报告 |
 | `mod/infra` | 05-infra | Schema 0001、pooler、migrate |
-| `mod/vendor` | docs/vendor/sif-mcp | Sif 官方 schema（不臆造字段） |
+| `mod/vendor` | docs/vendor/sif-mcp + sellersprite-mcp | Sif/SS 官方 schema（不臆造字段） |
 | `mod/workflow` | 06 + 07-changelog | 规则/总结，不改业务 |
 
 ## 开聊模板（复制）

@@ -35,5 +35,5 @@
 
 ## 客户端设置
 
-- `client-settings.ts`：源优先级、已解决 issue id  
+- `client-settings.ts`：源优先级（`asin-lens-source-priority-v2`）、已解决 issue id  
 - `client-auth.ts`：`ApiError` 可带 `failures` 清单  

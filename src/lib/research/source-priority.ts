@@ -17,6 +17,11 @@ export const METRIC_FIELDS = [
 
 export type MetricField = (typeof METRIC_FIELDS)[number];
 
+/** 流量相关：冲突时 Sif 优先（含 keywordTraffic / trafficSource 管线） */
+export const TRAFFIC_METRIC_FIELDS = ["traffic", "topKeywords"] as const;
+
+export type TrafficMetricField = (typeof TRAFFIC_METRIC_FIELDS)[number];
+
 export const sourcePrioritySchema = z.object({
   /** Global order: earlier source wins when field has no override */
   order: z.array(z.string().min(1).max(40)).min(1).max(12),
@@ -28,16 +33,27 @@ export const sourcePrioritySchema = z.object({
 
 export type SourcePriorityConfig = z.infer<typeof sourcePrioritySchema>;
 
+/** 产品默认：非流量 SellerSprite 优先；流量字段 Sif 优先 */
 export const DEFAULT_SOURCE_PRIORITY: SourcePriorityConfig = {
   order: ["SellerSprite", "Sif"],
-  fields: {},
+  fields: {
+    traffic: ["Sif", "SellerSprite"],
+    topKeywords: ["Sif", "SellerSprite"],
+  },
 };
+
+function cloneDefaultPriority(): SourcePriorityConfig {
+  return {
+    order: [...DEFAULT_SOURCE_PRIORITY.order],
+    fields: { ...DEFAULT_SOURCE_PRIORITY.fields },
+  };
+}
 
 export function parseSourcePriority(value: unknown): SourcePriorityConfig {
   const parsed = sourcePrioritySchema.safeParse(value);
-  if (!parsed.success) return { ...DEFAULT_SOURCE_PRIORITY, fields: {} };
+  if (!parsed.success) return cloneDefaultPriority();
   const order = dedupeNames(parsed.data.order);
-  if (order.length === 0) return { ...DEFAULT_SOURCE_PRIORITY, fields: {} };
+  if (order.length === 0) return cloneDefaultPriority();
   const fields: SourcePriorityConfig["fields"] = {};
   if (parsed.data.fields) {
     for (const [key, list] of Object.entries(parsed.data.fields)) {

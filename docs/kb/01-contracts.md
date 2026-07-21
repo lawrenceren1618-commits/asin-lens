@@ -25,8 +25,8 @@
 | 字段 | 主源 | 说明 |
 |------|------|------|
 | share | Sif `market_get_asin_keyword_signals` | `click_share` / `traffic_share` |
-| dailyTraffic / bid | SellerSprite `traffic_keyword` | `searches` / `bid`；补缺 |
-| cvr | — | **Sif schema 无 ASIN×词转化率**；报告 `no_result`；我的 ASIN 用手填 `manual_cvr_60d` 作基准旁注 |
+| dailyTraffic / bid | SellerSprite `traffic_keyword` | `searches` / `bid`（或 `calculatedWeeklySearches`）；补缺 |
+| cvr | — | **Sif 无 ASIN×词转化率**；SS 有 `purchaseRate` 但**禁止写入 cvr**；报告 `no_result`；own 用手填 `manual_cvr_60d` |
 | spend | — | Sif/SS 常无金额 → `no_result` |
 | 流量来源 | Sif `ops_get_listing_traffic_overview` | 自然 vs 广告（SP/SB/SBV）；写入 `rawRefs.trafficSource`，行业报告输出 |
 
@@ -36,8 +36,17 @@ Sif 入参用 **`country`**（非 marketplace）；关键词信号默认 `time_t
 ## 源优先级 `SourcePriorityConfig`
 
 定义：`src/lib/research/source-priority.ts`  
-存：浏览器 `localStorage`（`asin-lens-source-priority-v1`）  
+存：浏览器 `localStorage`（`asin-lens-source-priority-v2`）  
 采集请求体可带 `sourcePriority`；合并时靠前源优先，字段可单独覆盖。
+
+**产品默认（冲突照此执行）**
+
+| 类别 | 优先源 | 字段 / 管线 |
+|------|--------|-------------|
+| 非流量 | SellerSprite → Sif | `title` · `price` · `sales` · `rank` · `cart` |
+| 流量 | Sif → SellerSprite | `traffic` · `topKeywords`；`keywordTraffic` 合并固定 Sif 主、SS 补缺；`rawRefs.trafficSource` 仅 Sif |
+
+可在 `/rules` 调整；未改时按上表。
 
 ## 流水线报错 `PipelineIssue`
 
