@@ -13,3 +13,7 @@
 
 - `mcp-api-source.md` 归入 `docs/vendor/sellersprite-mcp/`（不再放工程根目录）
 - 本机只保留 `Cursor-skills/asin-lens` 工作区；桌面克隆删除
+
+## 2026-07-22 — 创建项目 DB 错误提示
+
+- `/api/projects`：区分密码认证失败、未建表、pooler 连接问题，返回可读中文提示
