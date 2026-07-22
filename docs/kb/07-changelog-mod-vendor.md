@@ -8,3 +8,8 @@
   - `README.md`：调用规则摘要（`marketplace`、在用工具、与 Sif 边界对照）
 - 更新 `asin-lens-vendor.mdc`、`AGENTS.md`、`docs/kb/INDEX.md`、`03-collect.md`、`01-contracts.md`（cvr / purchaseRate）
 - 规则要点：SS 站点参数用 `marketplace`；`purchaseRate` 不入 `keywordTraffic.cvr`；`traffic_source`≠ Sif 流量结构
+
+## 2026-07-22 — 原文归档归位 + 单工作区
+
+- `mcp-api-source.md` 归入 `docs/vendor/sellersprite-mcp/`（不再放工程根目录）
+- 本机只保留 `Cursor-skills/asin-lens` 工作区；桌面克隆删除

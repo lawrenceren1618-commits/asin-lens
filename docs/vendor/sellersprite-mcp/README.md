@@ -2,6 +2,7 @@
 
 > **官方真源**：[`sellersprite-mcp-api.md`](./sellersprite-mcp-api.md)（43 个 MCP Code，来自 [open.sellersprite.com/api](https://open.sellersprite.com/api)）  
 > **机器可读目录**：[`sellersprite-mcp-tools.json`](./sellersprite-mcp-tools.json)  
+> **上传原文归档**：[`mcp-api-source.md`](./mcp-api-source.md)（与全文同源；勿再放工程根目录）  
 > 改工具名、入参、字段映射前 **必须先读真源**，禁止臆造字段。
 
 ## 与 ASIN Lens 的关系
