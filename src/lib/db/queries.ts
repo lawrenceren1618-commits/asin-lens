@@ -3,6 +3,7 @@ import "server-only";
 import { and, desc, eq, gte, inArray, isNull, ne } from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
+import { ensureAutoDailyColumn } from "@/lib/db/ensure-schema";
 import {
   asinChangeLog,
   asinSnapshots,
@@ -14,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 
 export async function listProjects() {
+  await ensureAutoDailyColumn();
   const db = getDb();
   return db.select().from(projects).orderBy(desc(projects.createdAt));
 }
@@ -49,6 +51,7 @@ export function nextUniqueProjectName(
 }
 
 export async function createProject(name: string) {
+  await ensureAutoDailyColumn();
   const db = getDb();
   const [row] = await db
     .insert(projects)
@@ -71,6 +74,7 @@ export async function updateProjectAutoDaily(
   projectId: string,
   autoDaily: boolean,
 ) {
+  await ensureAutoDailyColumn();
   const db = getDb();
   const [row] = await db
     .update(projects)
@@ -81,6 +85,7 @@ export async function updateProjectAutoDaily(
 }
 
 export async function listAutoDailyProjects() {
+  await ensureAutoDailyColumn();
   const db = getDb();
   return db
     .select()
@@ -107,6 +112,7 @@ export async function deleteProjectsWithoutAsins() {
 }
 
 export async function getProject(projectId: string) {
+  await ensureAutoDailyColumn();
   const db = getDb();
   const [row] = await db
     .select()
