@@ -15,9 +15,22 @@ import {
 } from "@/lib/db/schema";
 
 export async function listProjects() {
-  await ensureAutoDailyColumn();
   const db = getDb();
-  return db.select().from(projects).orderBy(desc(projects.createdAt));
+  try {
+    await ensureAutoDailyColumn();
+    return await db.select().from(projects).orderBy(desc(projects.createdAt));
+  } catch {
+    // Pooler/role may reject DDL; list without auto_daily until SQL is applied in Supabase.
+    const rows = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        createdAt: projects.createdAt,
+      })
+      .from(projects)
+      .orderBy(desc(projects.createdAt));
+    return rows.map((row) => ({ ...row, autoDaily: false }));
+  }
 }
 
 export async function listProjectNames() {
@@ -112,14 +125,27 @@ export async function deleteProjectsWithoutAsins() {
 }
 
 export async function getProject(projectId: string) {
-  await ensureAutoDailyColumn();
   const db = getDb();
-  const [row] = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1);
-  return row ?? null;
+  try {
+    await ensureAutoDailyColumn();
+    const [row] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+    return row ?? null;
+  } catch {
+    const [row] = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        createdAt: projects.createdAt,
+      })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+    return row ? { ...row, autoDaily: false } : null;
+  }
 }
 
 export async function listProjectAsins(projectId: string) {
