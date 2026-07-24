@@ -2,13 +2,18 @@
 
 ## 生成
 
-- Cron：`/api/cron/daily-report`（北京时间约定见 README）  
-- 逻辑：`generateDailyReports`（`report.ts`）  
+- Cron：`GET /api/cron/daily-report`（Vercel `0 1 * * *` UTC = **北京 09:00**；需 `CRON_SECRET`）  
+- **自动项目**（`projects.auto_daily`）：采集 → **异动日报** + **行业/优化报告** → 飞书/邮件  
+  - 实现：`runAutoDailyPipeline`（`auto-daily.ts`）  
+  - 异动：`generateDailyReportForProject`（报告日取上海当日，对照更早快照）  
+  - 行业：`generateIndustryOptReport`（默认佣金/头程费率）  
+  - `?mode=legacy`：旧行为，全项目只跑异动、不采集  
 - 异动阈值：价格 ≥5%，流量 ≥20%  
+- 非自动项目：不进 Cron；仍可手动采集 /「生成最新」  
 
 ## 行业/优化报告（独立）
 
-- API：`POST /api/projects/:id/industry-opt-reports`  
+- API：`POST /api/projects/:id/industry-opt-reports`（可选 body `{ commerceRates }`）  
 - 逻辑：`generateIndustryOptReport`（`industry-opt.ts`）  
 - 规范：`IndustryOptCanonical` → 核对 → Markdown  
 - 无我的 ASIN → 仅行业竞品；有 → 行业 + 可优化项  
@@ -25,6 +30,14 @@
 - Sif 无 ASIN×词 CVR → 词行 `no_result`  
 - 我的 ASIN：有手填 `manual_cvr_60d` 时，词行旁注「对照手填整体 CVR」  
 
+### 单位经济段（≠ 异动日报）
+
+- 每 ASIN：`unitEconomics`（单个均价、配送、FBA、佣金、头程、利润粗算）  
+- 行业概览：`unitAvgPriceMin` / `Max` / `Median`  
+- 费率：客户端 `/rules` → localStorage `asin-lens-commerce-rates-v1` → 请求体 `commerceRates`（默认佣金 15%、头程五模式各 6 CNY/kg）  
+- 利润粗算：有单个均价即出数；缺配送/FBA/头程时**缺项未扣**（见契约）  
+- UI：`industry-opt-report-view` 结构化展示；与 `summaryMd` 经济行一致  
+
 ## 导出管线（异动日报）
 
 1. 组装 `ReportCanonical`  
@@ -35,10 +48,12 @@
 
 ## 规划中（见 /rules 后续入口）
 
+- 若 MCP 额度紧：可将行业报告改为每 3 天（异动仍每日）——路线「备用」  
 - 人工核对台（清洗前后对照）  
 - CSV/Excel 导出  
 - 源健康检查  
 - 分散型流量深挖功能区  
+- 佣金按大类表覆盖  
 
 ## 建议分支
 

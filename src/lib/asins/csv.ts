@@ -1,3 +1,5 @@
+import { isValidAsin } from "./parse";
+
 export function parseAsinCsv(text: string) {
   const lines = text
     .replace(/^\uFEFF/, "")
@@ -47,7 +49,7 @@ export function parseAsinCsv(text: string) {
       errors.push(`第 ${i + 1} 行：asin 为空`);
       continue;
     }
-    if (!/^[A-Z0-9]{10}$/.test(asin)) {
+    if (!isValidAsin(asin)) {
       errors.push(`第 ${i + 1} 行：asin 格式无效（${asin}）`);
       continue;
     }

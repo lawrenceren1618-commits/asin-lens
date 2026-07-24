@@ -11,7 +11,7 @@
 |----|------|
 | 调用封装 | `src/lib/mcp/sellersprite.ts` → MCP URL + `secret-key` |
 | 站点参数 | **`marketplace`**（非 Sif 的 `country`） |
-| 采集在用 | `asin_detail`、`traffic_keyword`（见 `collect.ts`） |
+| 采集在用 | `asin_detail`、`traffic_keyword`、`keepa_info`（见 `collect.ts`） |
 | 词级 CVR | 响应可有 `purchaseRate`，**契约禁止写入** `keywordTraffic.cvr`（与 Sif schema 边界一致，用手填 `manual_cvr_60d`） |
 | 流量来源 | SS `traffic_source` = **关键词流向**；Listing 自然/广告结构用 **Sif** `ops_get_listing_traffic_overview`，二者勿混 |
 
@@ -34,6 +34,12 @@
 - 入参：`marketplace` + `asin`（可选 `month` / 分页）
 - 映射：`items[].searches` / `calculatedWeeklySearches`→dailyTraffic；`bid`→bid  
 - **不映射**：`purchaseRate`→cvr
+
+### `keepa_info`（可选 · 经济字段）
+
+- 入参：`marketplace` + `asin`
+- 映射入 `rawRefs.listingExtras`：`fbaFees` · `pkgWeight` / `pkgWeightGram` / `weightGram` · `pkgDimensions` · `rootCategoryLabel`（大类回退）· `nodeLabelPath`
+- 失败不阻断采集；行业报告利润粗算缺 FBA/重量时标缺项未扣
 
 ## 目录分组（43）
 

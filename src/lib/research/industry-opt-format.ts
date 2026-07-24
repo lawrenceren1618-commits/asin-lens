@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { FIRST_MILE_MODES } from "./commerce-rates";
 import {
   formatMetricAvailability,
   TOP3_CONCENTRATION_THRESHOLD,
@@ -24,6 +25,26 @@ const keywordInsightSchema = z.object({
   spend: metricAvailabilitySchema,
 });
 
+const unitEconomicsSchema = z.object({
+  rootCategory: z.string().nullable(),
+  packCount: z.number().int().positive(),
+  packCountSource: z.enum(["title", "assumed_one"]),
+  listingPrice: z.number().finite().nullable(),
+  unitAvgPrice: z.number().finite().nullable(),
+  deliveryPrice: metricAvailabilitySchema,
+  unitAvgDelivery: metricAvailabilitySchema,
+  fbaFee: metricAvailabilitySchema,
+  unitFbaFee: metricAvailabilitySchema,
+  referralRate: z.number().finite().nonnegative(),
+  unitReferralFee: metricAvailabilitySchema,
+  billableWeightKg: z.number().finite().nullable(),
+  firstMileMode: z.enum(FIRST_MILE_MODES),
+  firstMileRateCnyPerKg: z.number().finite().nonnegative(),
+  firstMileUnitCostCny: metricAvailabilitySchema,
+  firstMileUnitCostUsd: metricAvailabilitySchema,
+  unitProfitProxyUsd: metricAvailabilitySchema,
+});
+
 const asinIndustrySliceSchema = z.object({
   asin: z.string().min(1),
   market: z.string().min(1),
@@ -37,6 +58,7 @@ const asinIndustrySliceSchema = z.object({
   top3ShareSum: z.number().finite().nullable(),
   trafficSource: trafficSourceSchema,
   topKeywords: z.array(keywordInsightSchema),
+  unitEconomics: unitEconomicsSchema,
 });
 
 const ownOptimizationSchema = z.object({
@@ -48,6 +70,8 @@ const ownOptimizationSchema = z.object({
   trafficSource: trafficSourceSchema,
   pricingNote: z.string(),
   copyNote: z.string(),
+  unitEconomics: unitEconomicsSchema,
+  economicsNote: z.string(),
   keywordInsights: z.array(keywordInsightSchema),
 });
 
@@ -62,6 +86,9 @@ export const industryOptCanonicalSchema = z.object({
     priceMin: z.number().finite().nullable(),
     priceMax: z.number().finite().nullable(),
     priceMedian: z.number().finite().nullable(),
+    unitAvgPriceMin: z.number().finite().nullable(),
+    unitAvgPriceMax: z.number().finite().nullable(),
+    unitAvgPriceMedian: z.number().finite().nullable(),
     dispersedAsinCount: z.number().int().nonnegative(),
     concentratedAsinCount: z.number().int().nonnegative(),
     competitors: z.array(asinIndustrySliceSchema),
@@ -126,6 +153,18 @@ function patternLabel(
   return "流量结构未知";
 }
 
+function formatEconLine(
+  econ: z.infer<typeof unitEconomicsSchema>,
+): string[] {
+  return [
+    `- 大类：${econ.rootCategory ?? "—"} · 装量 ${econ.packCount}（${econ.packCountSource === "title" ? "标题识别" : "默认1"}）`,
+    `- 单个平均售价：${econ.unitAvgPrice ?? "—"}（标价 ${econ.listingPrice ?? "—"}）`,
+    `- 单个配送：${formatMetricAvailability(econ.unitAvgDelivery)} · 单个FBA：${formatMetricAvailability(econ.unitFbaFee)} · 单个佣金(${(econ.referralRate * 100).toFixed(0)}%)：${formatMetricAvailability(econ.unitReferralFee)}`,
+    `- 计费重：${econ.billableWeightKg ?? "—"} kg · 头程单价：${formatMetricAvailability(econ.firstMileUnitCostCny)} CNY / ${formatMetricAvailability(econ.firstMileUnitCostUsd)} USD`,
+    `- 单件利润粗算(USD)：${formatMetricAvailability(econ.unitProfitProxyUsd)}`,
+  ];
+}
+
 export function formatIndustryOptMd(report: IndustryOptCanonical): string {
   const lines = [
     `# ${report.projectName} 行业/优化报告 ${report.reportDate}`,
@@ -135,7 +174,8 @@ export function formatIndustryOptMd(report: IndustryOptCanonical): string {
     "",
     "## 行业概览",
     "",
-    `- 价带：${report.industry.priceMin ?? "—"} ~ ${report.industry.priceMax ?? "—"}（中位 ${report.industry.priceMedian ?? "—"}）`,
+    `- 标价带：${report.industry.priceMin ?? "—"} ~ ${report.industry.priceMax ?? "—"}（中位 ${report.industry.priceMedian ?? "—"}）`,
+    `- 单个平均售价带：${report.industry.unitAvgPriceMin ?? "—"} ~ ${report.industry.unitAvgPriceMax ?? "—"}（中位 ${report.industry.unitAvgPriceMedian ?? "—"}）`,
     `- 集中型流量：${report.industry.concentratedAsinCount} · 分散型流量：${report.industry.dispersedAsinCount}`,
     `- 判定阈值：前三词合计份额 ≥ ${TOP3_CONCENTRATION_THRESHOLD * 100}% 为集中型；否则直接标「分散型流量」（深挖留待其它功能区）`,
     "",
@@ -148,6 +188,7 @@ export function formatIndustryOptMd(report: IndustryOptCanonical): string {
       `- 价格 / 流量 / 销量 / 排名：${item.price ?? "—"} / ${item.traffic ?? "—"} / ${item.sales ?? "—"} / ${item.rank ?? "—"}`,
       `- 流量结构：${patternLabel(item.trafficPattern)}${item.top3ShareSum !== null ? `（前三合计 ${pct(item.top3ShareSum)}）` : ""}`,
       `- 流量来源：${formatTrafficSourceLine(item.trafficSource)}`,
+      ...formatEconLine(item.unitEconomics),
     );
     if (item.trafficPattern === "dispersed") {
       lines.push("- 结论：这是分散型流量（不在此报告深挖）");
@@ -178,6 +219,8 @@ export function formatIndustryOptMd(report: IndustryOptCanonical): string {
         `- 流量来源：${formatTrafficSourceLine(own.trafficSource)}`,
         `- 定价：${own.pricingNote}`,
         `- 文案：${own.copyNote}`,
+        `- 单件经济：${own.economicsNote}`,
+        ...formatEconLine(own.unitEconomics),
         "- 主要流量词（词转化无源则无结果；有手填基准时可对照整体 CVR）：",
       );
       for (const kw of own.keywordInsights.slice(0, 8)) {

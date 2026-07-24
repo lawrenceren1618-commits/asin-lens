@@ -7,12 +7,13 @@
   "restBase": "https://api.sellersprite.com",
   "mcpDefaultUrl": "https://mcp.sellersprite.com/mcp",
   "asinLens": {
-    "inUse": ["asin_detail", "traffic_keyword"],
+    "inUse": ["asin_detail", "traffic_keyword", "keepa_info"],
     "doNotMapToCvr": ["purchaseRate"],
     "notes": [
       "Use marketplace (not country).",
       "traffic_source is keyword-flow, not listing organic/ad mix (use Sif ops_get_listing_traffic_overview for that).",
-      "purchaseRate must not be written to keywordTraffic.cvr."
+      "purchaseRate must not be written to keywordTraffic.cvr.",
+      "keepa_info optional: fbaFees / pkg weight / dimensions into rawRefs.listingExtras for unit economics."
     ]
   },
   "tools": [
@@ -126,7 +127,7 @@
       "method": "GET",
       "path": "/v1/keepa/{marketplace}/{asin}",
       "required": ["marketplace", "asin"],
-      "asinLens": "unused"
+      "asinLens": "collect_enrichment"
     },
     {
       "name": "keyword_research",

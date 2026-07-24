@@ -68,24 +68,41 @@ UI：`IssueChecklist`（可勾已处理）
 - 无 own → `mode=industry`  
 - 有 own → `mode=industry_plus_own`（行业 + 可优化：流量词/定价/文案 + 手填 CVR 对照）
 
+#### 单位经济 `unitEconomics`（仅行业/优化报告，不进日报）
+
+- 计算：`src/lib/research/unit-economics.ts`；费率：`commerce-rates.ts`  
+- 输入：快照 `title` / `price` + `rawRefs.listingExtras`（采集写入）+ 可选 `commerceRates`  
+- 装量：标题解析 `N Pack` / `pack of N` 等；解析不到 → `assumed_one`（按 1）  
+- **单个均价** = listing 售价 ÷ 装量；行业概览另有 `unitAvgPriceMin/Max/Median`  
+- **佣金**：默认售价 15%（`commissionRate`，可在 `/rules` 改）；后续可按大类表覆盖  
+- **头程**：五模式（空运 / 海运普船卡派 / 海运快船卡派 / 海运快递派送 / 全程快递派送），默认各 6 CNY/kg；按计费重÷装量  
+- **利润粗算** `unitProfitProxyUsd`：有单个均价即给出数值；扣可得的佣金/配送/FBA/头程，**缺项未扣**（非「全缺 → no_result」）  
+- FBA / 包装重主要来自 SS `keepa_info`；无源 → 对应字段 `no_result`
+
+#### `rawRefs.listingExtras`
+
+清洗自 SS `asin_detail` + `keepa_info`（字段以 vendor 为准）：`deliveryPrice` · `weight` · `pkgWeight` · `pkgWeightGram`/`weightGram` · `dimensions` · `pkgDimensions` · `bsrLabel`/`rootCategoryLabel` · `nodeLabelPath` · `fulfillment` · `fbaFees`
+
 ## 主要 API
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
+| PATCH | `/api/projects/:id` | `{ name, acceptDuplicateSuffix? }` 改名；或 `{ autoDaily }` 开关自动项目 |
 | POST | `/api/collect` | `{ projectId \| asinId, sourcePriority? }` |
 | GET | `/api/reports` | 日报列表 |
 | CRUD | `/api/projects...` | 项目与 ASIN |
 | PATCH | `/api/projects/:id/asins/:asinId` | `{ role?, manualCvr60d?, note? }` |
-| POST | `/api/projects/:id/industry-opt-reports` | 生成行业/优化报告 |
-| GET | `/api/cron/daily-report` | Cron，需 `CRON_SECRET` |
+| POST | `/api/projects/:id/industry-opt-reports` | 生成行业/优化报告；可选 body `{ commerceRates }` |
+| GET | `/api/cron/daily-report` | 自动项目：采集+异动+行业+推送；`?mode=legacy` 仅异动；需 `CRON_SECRET` |
+| POST | `/api/admin/migrate` | 幂等执行 `drizzle/0001` + `0002` |
 
 ## 核心表（语义）
 
-- `projects` / `asins`（含 `role`, `manual_cvr_60d`）  
+- `projects`（含 `auto_daily`：自动项目日更） / `asins`（含 `role`, `manual_cvr_60d`）  
 - `asin_snapshots`：按日规范快照 + `keyword_traffic` + `raw_refs`  
 - `asin_change_log`：变化区间  
 - `daily_reports`：异动日报  
 - `industry_opt_reports`：行业/优化报告（`mode` + `payload` + `summary_md`）  
 - `job_runs`：任务状态  
 
-Schema 真源：`src/lib/db/schema.ts`、`drizzle/0000_init.sql`、`drizzle/0001_own_competitor.sql`
+Schema 真源：`src/lib/db/schema.ts`、`drizzle/0000_init.sql`、`drizzle/0001_own_competitor.sql`、`drizzle/0002_auto_daily.sql`

@@ -168,3 +168,45 @@ describe("report verify + format", () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe("keepa_info merge", () => {
+  it("does not let keepa price trend overwrite asin_detail price", () => {
+    const metrics = cleanToMetrics([
+      {
+        source: "SellerSprite",
+        tool: "asin_detail",
+        raw: {
+          asin: "B0TEST",
+          title: "FINDYOU 10 Pack White Table Cloth",
+          price: 39.5,
+          bsrRank: 1200,
+          bsrLabel: "Home & Kitchen",
+          deliveryPrice: -1,
+          weight: "2 pounds",
+        },
+      },
+      {
+        source: "SellerSprite",
+        tool: "keepa_info",
+        raw: {
+          asin: "B0TEST",
+          title: "FINDYOU 10 Pack White Table Cloth",
+          price: [{ time: 1, value: 40 }],
+          bsr: [{ time: 1, value: 900 }],
+          fbaFees: 5.2,
+          pkgWeightGram: 2000,
+          rootCategoryLabel: "Home & Kitchen",
+          nodeLabelPath: "Home & Kitchen:Kitchen:Tablecloths",
+        },
+      },
+    ]);
+
+    expect(metrics.price).toBe(39.5);
+    expect(metrics.rank).toBe(1200);
+    expect(metrics.rawRefs.listingExtras).toMatchObject({
+      fbaFees: 5.2,
+      pkgWeightGram: 2000,
+      bsrLabel: "Home & Kitchen",
+    });
+  });
+});

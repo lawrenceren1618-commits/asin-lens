@@ -120,6 +120,29 @@ describe("keyword traffic", () => {
 });
 
 describe("industry opt report", () => {
+  const sampleUnitEconomics = {
+    rootCategory: "Home & Kitchen",
+    packCount: 1,
+    packCountSource: "assumed_one" as const,
+    listingPrice: 15,
+    unitAvgPrice: 15,
+    deliveryPrice: { status: "no_result" as const, reason: "无卖家运费" },
+    unitAvgDelivery: { status: "no_result" as const, reason: "无卖家运费" },
+    fbaFee: { status: "no_result" as const, reason: "无 FBA 费用（需 keepa_info）" },
+    unitFbaFee: {
+      status: "no_result" as const,
+      reason: "无 FBA 费用（需 keepa_info）",
+    },
+    referralRate: 0.15,
+    unitReferralFee: { status: "ok" as const, value: 2.25 },
+    billableWeightKg: null,
+    firstMileMode: "air" as const,
+    firstMileRateCnyPerKg: 6,
+    firstMileUnitCostCny: { status: "no_result" as const, reason: "缺少计费重量" },
+    firstMileUnitCostUsd: { status: "no_result" as const, reason: "缺少计费重量" },
+    unitProfitProxyUsd: { status: "ok" as const, value: 12.75 },
+  };
+
   it("formats industry-only mode", () => {
     const { markdown, verify } = prepareIndustryOptExport({
       projectId: "p1",
@@ -132,6 +155,9 @@ describe("industry opt report", () => {
         priceMin: 10,
         priceMax: 20,
         priceMedian: 15,
+        unitAvgPriceMin: 15,
+        unitAvgPriceMax: 15,
+        unitAvgPriceMedian: 15,
         dispersedAsinCount: 0,
         concentratedAsinCount: 1,
         competitors: [
@@ -169,6 +195,7 @@ describe("industry opt report", () => {
                 spend: { status: "no_result", reason: "无源数据，无法给出花费" },
               },
             ],
+            unitEconomics: sampleUnitEconomics,
           },
         ],
       },
@@ -179,6 +206,7 @@ describe("industry opt report", () => {
     expect(markdown).toContain("B0TEST1234");
     expect(markdown).toContain("流量来源");
     expect(markdown).toContain("自然 62.0%");
+    expect(markdown).toContain("单个平均售价");
     expect(formatIndustryOptMd).toBeTypeOf("function");
   });
 
@@ -194,6 +222,9 @@ describe("industry opt report", () => {
         priceMin: null,
         priceMax: null,
         priceMedian: null,
+        unitAvgPriceMin: null,
+        unitAvgPriceMax: null,
+        unitAvgPriceMedian: null,
         dispersedAsinCount: 0,
         concentratedAsinCount: 0,
         competitors: [],

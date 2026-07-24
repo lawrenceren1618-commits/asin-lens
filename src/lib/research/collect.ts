@@ -95,6 +95,16 @@ async function collectOneAsin(
     // optional enrichment
   }
 
+  try {
+    const raw = await callSellerSpriteTool("keepa_info", {
+      asin: asin.asin,
+      marketplace: asin.market,
+    });
+    sources.push({ source: "SellerSprite", tool: "keepa_info", raw });
+  } catch {
+    // optional — FBA 费用 / 包装重
+  }
+
   // Sif schema: country（非 marketplace）；time_type=lately + time_value=7|30
   try {
     const raw = await callSifTool("market_get_asin_keyword_signals", {

@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -28,6 +29,8 @@ export type IndustryOptPayload = Record<string, unknown>;
 export const projects = pgTable("projects", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
+  /** 自动项目：每日 09:00（北京）采集 + 异动日报 + 行业报告 + 推送 */
+  autoDaily: boolean("auto_daily").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

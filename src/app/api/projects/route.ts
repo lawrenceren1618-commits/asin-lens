@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAuthorized } from "@/lib/auth";
-import { createProject, listProjects } from "@/lib/db/queries";
+import {
+  createProject,
+  listProjectNames,
+  listProjects,
+  nextUniqueProjectName,
+} from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 
@@ -44,14 +49,49 @@ export async function POST(request: Request) {
 
   try {
     const body = z
-      .object({ name: z.string().trim().min(1).max(120) })
+      .object({
+        name: z
+          .string()
+          .trim()
+          .min(1, "项目名称不能为空")
+          .max(120, "项目名称过长"),
+        /** 用户已确认：同名时自动加后缀 1、2… */
+        acceptDuplicateSuffix: z.boolean().optional(),
+      })
       .parse(await request.json());
-    const project = await createProject(body.name);
-    return NextResponse.json({ project });
+
+    const existingNames = await listProjectNames();
+    const exactTaken = existingNames.some(
+      (name) => name.trim() === body.name,
+    );
+
+    if (exactTaken && !body.acceptDuplicateSuffix) {
+      const suggestedName = nextUniqueProjectName(body.name, existingNames);
+      return NextResponse.json(
+        {
+          error: `已有同名项目「${body.name}」。坚持创建将命名为「${suggestedName}」。`,
+          conflict: true,
+          suggestedName,
+        },
+        { status: 409 },
+      );
+    }
+
+    const finalName = exactTaken
+      ? nextUniqueProjectName(body.name, existingNames)
+      : body.name;
+    const project = await createProject(finalName);
+    return NextResponse.json({
+      project,
+      renamed: finalName !== body.name,
+      requestedName: body.name,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const first =
+        error.issues[0]?.message ?? "项目名称不能为空或仅含空格";
       return NextResponse.json(
-        { error: "项目名称无效", details: error.flatten() },
+        { error: first, details: error.flatten() },
         { status: 400 },
       );
     }

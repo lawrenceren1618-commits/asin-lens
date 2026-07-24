@@ -18,6 +18,7 @@ import {
   type SourcePriorityConfig,
 } from "./source-priority";
 import { extractTrafficSourceFromSources } from "./traffic-source";
+import { emptyListingExtras, type ListingExtras } from "./unit-economics";
 
 /** Canonical metrics stored in Postgres — AI/machine-friendly, stable shape. */
 export const snapshotMetricsSchema = z.object({
@@ -49,6 +50,61 @@ function toNumber(value: unknown): number | null {
     return Number.isFinite(n) ? n : null;
   }
   return null;
+}
+
+/** keepa 趋势等数组不得覆盖 asin_detail 的标量字段（如 price） */
+function assignProductFields(
+  bucket: Record<string, unknown>,
+  data: Record<string, unknown>,
+) {
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined) continue;
+    const existing = bucket[key];
+    if (
+      Array.isArray(value) &&
+      existing !== undefined &&
+      !Array.isArray(existing)
+    ) {
+      continue;
+    }
+    bucket[key] = value;
+  }
+}
+
+function asOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  return text ? text : null;
+}
+
+function extractListingExtras(
+  bySource: Record<string, Record<string, unknown>>,
+): ListingExtras {
+  const extras = emptyListingExtras();
+  const ss = bySource.SellerSprite ?? {};
+  const delivery = toNumber(ss.deliveryPrice);
+  // SS asin_detail: -1 means no seller shipping
+  extras.deliveryPrice =
+    delivery !== null && delivery >= 0 ? delivery : null;
+  // weight / pkg*: asin_detail 给人读字符串；keepa_info 另有 *Gram（克）
+  extras.weight = asOptionalString(ss.weight);
+  extras.pkgWeight = asOptionalString(ss.pkgWeight);
+  const gram =
+    toNumber(ss.pkgWeightGram) ?? toNumber(ss.weightGram);
+  extras.pkgWeightGram = gram !== null && gram > 0 ? gram : null;
+  // keepa dimensions 偶发非 "L x W x H" 字符串，体积重解析会失败并回退重量
+  extras.dimensions = asOptionalString(ss.dimensions ?? ss.dimension);
+  extras.pkgDimensions = asOptionalString(ss.pkgDimensions);
+  // asin_detail.bsrLabel；keepa_info.rootCategoryLabel 作大类回退
+  extras.bsrLabel =
+    asOptionalString(ss.bsrLabel) ??
+    asOptionalString(ss.rootCategoryLabel);
+  extras.nodeLabelPath = asOptionalString(ss.nodeLabelPath);
+  extras.fulfillment = asOptionalString(ss.fulfillment);
+  // keepa_info.fbaFees（官方字段）
+  const fba = toNumber(ss.fbaFees ?? ss.fba);
+  extras.fbaFees = fba !== null && fba >= 0 ? fba : null;
+  return extras;
 }
 
 function collectKeywords(data: Record<string, unknown>): string[] {
@@ -99,7 +155,7 @@ function buildPerSourceMaps(sources: SourceResult[]): {
           item.data.bsrRank !== undefined,
       );
       if (hasKeyword && !hasProduct) continue;
-      Object.assign(bucket, item.data);
+      assignProductFields(bucket, item.data);
     }
     bySource[source.source] = bucket;
     perSourceMeta[source.source] = {
@@ -150,9 +206,11 @@ export function cleanToMetrics(
   ).trim();
 
   const price = toNumber(
-    pickFromSources(bySource, fieldOrder(priority, "price"), (data) =>
-      data.price ?? data.Price ?? data.售价 ?? data.currentPrice,
-    ),
+    pickFromSources(bySource, fieldOrder(priority, "price"), (data) => {
+      const raw = data.price ?? data.Price ?? data.售价 ?? data.currentPrice;
+      // keepa_info.price 为趋势 List，不能当售价
+      return Array.isArray(raw) ? null : raw;
+    }),
   );
 
   const salesRaw = toNumber(
@@ -162,9 +220,14 @@ export function cleanToMetrics(
   );
 
   const rankRaw = toNumber(
-    pickFromSources(bySource, fieldOrder(priority, "rank"), (data) =>
-      data.rank ?? data.bsr ?? data.bsrRank ?? data.排名 ?? data.BSR,
-    ),
+    pickFromSources(bySource, fieldOrder(priority, "rank"), (data) => {
+      const candidates = [data.rank, data.bsrRank, data.排名, data.BSR, data.bsr];
+      for (const raw of candidates) {
+        if (Array.isArray(raw)) continue;
+        if (raw !== undefined && raw !== null) return raw;
+      }
+      return null;
+    }),
   );
 
   const cart = String(
@@ -187,6 +250,7 @@ export function cleanToMetrics(
 
   const keywordTraffic = collectKeywordTrafficFromSources(sources);
   const trafficSource = extractTrafficSourceFromSources(sources);
+  const listingExtras = extractListingExtras(bySource);
   const topKeywordsFromTraffic = keywordTraffic.map((row) => row.keyword);
   const topKeywords = Array.isArray(keywordSource)
     ? keywordSource.filter((item): item is string => typeof item === "string")
@@ -209,6 +273,7 @@ export function cleanToMetrics(
     rawRefs: {
       sources: perSourceMeta,
       trafficSource,
+      listingExtras,
       priority,
       cleanedAt: new Date().toISOString(),
     },

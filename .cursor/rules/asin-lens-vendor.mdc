@@ -24,6 +24,7 @@ alwaysApply: false
 |------|------|------|
 | 标题/价/BSR | `asin_detail` | 采集主源 |
 | 词 searches / bid | `traffic_keyword` | 补缺；`purchaseRate` **不入** cvr |
+| FBA / 包装重 | `keepa_info` | 可选 → `rawRefs.listingExtras`；趋势数组勿盖标量售价 |
 | 关键词流向 | `traffic_source` | ≠ Listing 自然/广告结构 |
 
 认证：`secret-key`。完整 43 工具见 `sellersprite-mcp-tools.json`。

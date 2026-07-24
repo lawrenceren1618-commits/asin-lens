@@ -40,3 +40,22 @@
 
 - 单测：`traffic-source` + industry opt format 含「流量来源」  
 - 有快照后：项目页「生成行业/优化报告」应出现流量来源行（旧快照无结构化字段时可能 `no_result`，需再采集）  
+
+---
+
+## 2026-07-23 — 单位经济（单个均价 / 佣金 / 头程 / 利润粗算）
+
+- `IndustryOptCanonical` 每 ASIN 增加 `unitEconomics`；行业概览增加 `unitAvgPriceMin/Max/Median`
+- 计算：`unit-economics.ts`；费率：`commerce-rates.ts`（默认佣金 15%、头程五模式各 6 CNY/kg）
+- 利润粗算：有单个均价即出数；配送/FBA/头程缺项未扣（契约写明）
+- API：`POST .../industry-opt-reports` 可带 `{ commerceRates }`；UI `/rules` 可配
+- 与异动日报分离；依赖采集 `rawRefs.listingExtras`（含 keepa）
+- 单测：`unit-economics.test.ts`
+- **修复**：`keepa_info` 的 `price`/`bsr` 趋势数组不得覆盖 `asin_detail` 标量售价/排名（`assignProductFields` + 测例）
+- table cloth 重采验收：6/10 Pack 单个均价、15% 佣金、FBA/头程、利润粗算均有数
+- 策略约定：打开读落库秒出（A）；自动项目每日 Cron 采集+双报告
+
+## 2026-07-23 — 自动项目日更管线
+
+- `runAutoDailyPipeline`：仅 `auto_daily` 项目；采集 → 异动（当日）→ 行业 → 推送
+- Cron 默认走该管线；`?mode=legacy` 旧全量异动

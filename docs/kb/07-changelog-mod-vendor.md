@@ -17,3 +17,8 @@
 ## 2026-07-22 — 创建项目 DB 错误提示
 
 - `/api/projects`：区分密码认证失败、未建表、pooler 连接问题，返回可读中文提示
+
+## 2026-07-23 — keepa_info 纳入采集在用
+
+- `asinLens.inUse` 增加 `keepa_info`（FBA / 包装重 / 大类回退 → `rawRefs.listingExtras`）
+- README 补工具说明；失败不阻断采集

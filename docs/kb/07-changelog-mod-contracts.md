@@ -76,3 +76,14 @@
 
 - `apiFetch`：空/非 JSON 响应不再抛原生 `json()` 异常；401/5xx 给中文提示
 - `POST/GET /api/projects`：捕获 DB 失败，提示检查 Transaction pooler（6543）
+
+## 2026-07-23 — 单位经济进行业报告契约
+
+- `IndustryOptCanonical.unitEconomics` + 行业 `unitAvgPrice*`；`rawRefs.listingExtras`
+- 佣金默认 15%、头程五模式；`POST industry-opt-reports` 可带 `commerceRates`
+- 利润粗算：有单个均价即出数，缺项未扣；与异动日报分离（详见 `01-contracts.md`）
+
+## 2026-07-23 — 自动项目 auto_daily
+
+- `projects.auto_daily`；`PATCH` 可改；Cron 只跑勾选项目（采集+异动+行业）
+- 迁移：`drizzle/0002_auto_daily.sql`（`POST /api/admin/migrate`）

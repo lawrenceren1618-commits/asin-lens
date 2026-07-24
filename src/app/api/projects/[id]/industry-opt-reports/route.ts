@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isAuthorized } from "@/lib/auth";
 import { getProject, listIndustryOptReports } from "@/lib/db/queries";
+import { parseCommerceRates } from "@/lib/research/commerce-rates";
 import { generateIndustryOptReport } from "@/lib/research/industry-opt";
 
 export const runtime = "nodejs";
@@ -35,7 +36,18 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   try {
-    const result = await generateIndustryOptReport(id);
+    let ratesInput: unknown;
+    try {
+      const body = (await request.json()) as { commerceRates?: unknown };
+      ratesInput = body?.commerceRates;
+    } catch {
+      ratesInput = undefined;
+    }
+    const result = await generateIndustryOptReport(
+      id,
+      undefined,
+      parseCommerceRates(ratesInput),
+    );
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(

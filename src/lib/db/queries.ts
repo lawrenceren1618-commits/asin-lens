@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, ne } from "drizzle-orm";
 
 import { getDb } from "@/lib/db";
 import {
@@ -18,10 +18,92 @@ export async function listProjects() {
   return db.select().from(projects).orderBy(desc(projects.createdAt));
 }
 
+export async function listProjectNames() {
+  const db = getDb();
+  const rows = await db.select({ name: projects.name }).from(projects);
+  return rows.map((row) => row.name);
+}
+
+export async function listProjectNamesExcept(projectId: string) {
+  const db = getDb();
+  const rows = await db
+    .select({ name: projects.name })
+    .from(projects)
+    .where(ne(projects.id, projectId));
+  return rows.map((row) => row.name);
+}
+
+/** 名称已被占用时：base → base1 → base2 … */
+export function nextUniqueProjectName(
+  desired: string,
+  existingNames: string[],
+) {
+  const base = desired.trim();
+  const taken = new Set(existingNames.map((name) => name.trim()));
+  if (!taken.has(base)) return base;
+  let suffix = 1;
+  while (taken.has(`${base}${suffix}`)) {
+    suffix += 1;
+  }
+  return `${base}${suffix}`;
+}
+
 export async function createProject(name: string) {
   const db = getDb();
-  const [row] = await db.insert(projects).values({ name }).returning();
+  const [row] = await db
+    .insert(projects)
+    .values({ name: name.trim() })
+    .returning();
   return row;
+}
+
+export async function updateProjectName(projectId: string, name: string) {
+  const db = getDb();
+  const [row] = await db
+    .update(projects)
+    .set({ name: name.trim() })
+    .where(eq(projects.id, projectId))
+    .returning();
+  return row ?? null;
+}
+
+export async function updateProjectAutoDaily(
+  projectId: string,
+  autoDaily: boolean,
+) {
+  const db = getDb();
+  const [row] = await db
+    .update(projects)
+    .set({ autoDaily })
+    .where(eq(projects.id, projectId))
+    .returning();
+  return row ?? null;
+}
+
+export async function listAutoDailyProjects() {
+  const db = getDb();
+  return db
+    .select()
+    .from(projects)
+    .where(eq(projects.autoDaily, true))
+    .orderBy(desc(projects.createdAt));
+}
+
+/** 删除尚无任何 ASIN 的空壳项目（级联清关联表）。 */
+export async function deleteProjectsWithoutAsins() {
+  const db = getDb();
+  const emptyRows = await db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .leftJoin(asins, eq(asins.projectId, projects.id))
+    .where(isNull(asins.id));
+
+  const deleted: { id: string; name: string }[] = [];
+  for (const row of emptyRows) {
+    await db.delete(projects).where(eq(projects.id, row.id));
+    deleted.push(row);
+  }
+  return deleted;
 }
 
 export async function getProject(projectId: string) {
@@ -132,19 +214,77 @@ export async function getLatestSnapshot(asinId: string) {
   return row ?? null;
 }
 
+/** 一次查出多个 ASIN 的最新快照（消灭 N+1 往返） */
+export async function listLatestSnapshotsForAsinIds(asinIds: string[]) {
+  if (asinIds.length === 0) {
+    return new Map<
+      string,
+      {
+        title: string | null;
+        price: string | null;
+        sales: number | null;
+        rank: number | null;
+        cart: string | null;
+        traffic: string | null;
+        topKeywords: string[] | null;
+      }
+    >();
+  }
+
+  const db = getDb();
+  const rows = await db
+    .select({
+      asinId: asinSnapshots.asinId,
+      snapshotDate: asinSnapshots.snapshotDate,
+      title: asinSnapshots.title,
+      price: asinSnapshots.price,
+      sales: asinSnapshots.sales,
+      rank: asinSnapshots.rank,
+      cart: asinSnapshots.cart,
+      traffic: asinSnapshots.traffic,
+      topKeywords: asinSnapshots.topKeywords,
+    })
+    .from(asinSnapshots)
+    .where(inArray(asinSnapshots.asinId, asinIds))
+    .orderBy(desc(asinSnapshots.snapshotDate));
+
+  const latest = new Map<
+    string,
+    {
+      title: string | null;
+      price: string | null;
+      sales: number | null;
+      rank: number | null;
+      cart: string | null;
+      traffic: string | null;
+      topKeywords: string[] | null;
+    }
+  >();
+  for (const row of rows) {
+    if (latest.has(row.asinId)) continue;
+    latest.set(row.asinId, {
+      title: row.title,
+      price: row.price,
+      sales: row.sales,
+      rank: row.rank,
+      cart: row.cart,
+      traffic: row.traffic,
+      topKeywords: row.topKeywords,
+    });
+  }
+  return latest;
+}
+
 export async function listSnapshotsForProject(
   projectId: string,
   days = 30,
 ) {
   const db = getDb();
-  const projectAsins = await listProjectAsins(projectId);
-  if (projectAsins.length === 0) return [];
-
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - days);
   const sinceDate = since.toISOString().slice(0, 10);
 
-  const rows = await db
+  return db
     .select({
       asinId: asinSnapshots.asinId,
       asin: asins.asin,
@@ -160,10 +300,13 @@ export async function listSnapshotsForProject(
     })
     .from(asinSnapshots)
     .innerJoin(asins, eq(asinSnapshots.asinId, asins.id))
-    .where(eq(asins.projectId, projectId))
+    .where(
+      and(
+        eq(asins.projectId, projectId),
+        gte(asinSnapshots.snapshotDate, sinceDate),
+      ),
+    )
     .orderBy(asinSnapshots.snapshotDate);
-
-  return rows.filter((row) => row.snapshotDate >= sinceDate);
 }
 
 export async function listDailyReports(projectId: string, limit = 14) {

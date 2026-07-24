@@ -13,18 +13,33 @@
 
 | 路由 | 组件 | 用途 |
 |------|------|------|
-| `/projects` | `projects-dashboard` | 项目列表 |
+| `/projects` | `projects-dashboard` | 项目列表；创建后**立即进入**详情（采集 / 行业报告） |
 | `/projects/[id]` | `project-detail` | 我的/竞品 ASIN、采集、图、行业优化报告、日报、报错清单 |
 | `/reports` | `reports-dashboard` | 日报阅读 |
 | `/rules` | `rules-dashboard` | 源优先级 + 后续能力入口 |
 | `/debug` | MCP 调试 | 旧控制台 |
 
+## 创建项目
+
+- 名称必填（trim 后非空）；空白/纯空格拒绝（前端禁用提交 + API 400）  
+- 「开始」成功后 `router.push(/projects/:id)`，不再停在列表刷新  
+- **同名**：先提示；用户坚持则自动加后缀 `1`（若 `name1` 已占用则 `2`、`3`…）；API `409` + `acceptDuplicateSuffix`  
+- **改名**：详情页可改项目名；`PATCH /api/projects/:id`，同名规则同上（不计自身）  
+- **自动项目**：详情勾选 `autoDaily`；列表显示「自动 · 每日 09:00」；Cron 采集+双报告+推送  
+- 无 ASIN 的空壳项目可用 `node scripts/cleanup-empty-projects.mjs` 清理  
+
 ## 项目详情要点
 
+- **流程壳**：面包屑 `项目工作台 → 项目名`；阶段条（选定项目 / 建档采集 / 行业报告）；副标题标明「已进入本项目」  
 - ASIN 分两区：**我的**（可选，可多变体）与 **竞品**（默认）  
 - 可将竞品「标为我的」；CSV `role` 列：`own` / `competitor`  
+- **识别建档**：左右分栏「我的 / 竞品」独立入口；粘贴多个 ASIN 时弹出悬浮框勾选「我的」，其余为竞品；格式错只提示、不调 MCP  
 - 我的 ASIN 可手填近 60 天整体转化率（小字提示亚马逊后台路径）  
-- 「生成行业/优化报告」与异动日报分离  
+- 「生成行业/优化报告」与异动日报分离；**报告区在采集入口下方、趋势图之前**（优先可见）；按 **payload 结构化阅读**（含单位经济）；`summaryMd` 可复制  
+- **加载策略 A（现行）**：先读落库上一版秒出；「生成最新报告」才调 MCP，并显示醒目等待条  
+- **备用 B（未启用）**：周期自动生成——详情报告区 + `/rules` 顶栏均有提示，避免遗忘  
+- **加载**：先 `?snapshots=0` 拉项目/ASIN/报告，再异步拉趋势快照；加载中显示「加载报告…」而非误显示「暂无」  
+- **趋势图**：指标多选；时间预设切换或自定义点「应用范围」才拉/裁剪快照；不因改日期整页重载报告  
 
 ## UI 原则
 
@@ -35,5 +50,6 @@
 
 ## 客户端设置
 
-- `client-settings.ts`：源优先级（`asin-lens-source-priority-v2`）、已解决 issue id  
+- `client-settings.ts`：源优先级（`asin-lens-source-priority-v2`）、已解决 issue id、**佣金/头程**（`asin-lens-commerce-rates-v1`）  
+- `/rules`：可改佣金比例、默认头程方式、各模式 CNY/kg、CNY→USD；生成行业报告时随请求带上  
 - `client-auth.ts`：`ApiError` 可带 `failures` 清单  

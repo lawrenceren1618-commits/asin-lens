@@ -9,7 +9,15 @@ import { Input } from "@/components/ui/input";
 import {
   loadSourcePriority,
   saveSourcePriority,
+  loadCommerceRates,
+  saveCommerceRates,
 } from "@/lib/client-settings";
+import {
+  FIRST_MILE_MODES,
+  FIRST_MILE_MODE_LABEL,
+  type CommerceRatesConfig,
+  type FirstMileMode,
+} from "@/lib/research/commerce-rates";
 import {
   BUILTIN_SOURCES,
   DEFAULT_SOURCE_PRIORITY,
@@ -21,6 +29,12 @@ import {
 } from "@/lib/research/source-priority";
 
 const ROADMAP = [
+  {
+    title: "行业报告周期自动生成（备用·可加长间隔）",
+    detail:
+      "若每日额度吃紧，可改为每 3 天只跑行业报告；异动日报仍可每日。当前默认：自动项目 = 每日采集 + 异动 + 行业。",
+    status: "备用",
+  },
   {
     title: "人工核对台",
     detail:
@@ -45,12 +59,16 @@ export function RulesDashboard() {
     order: [...DEFAULT_SOURCE_PRIORITY.order],
     fields: { ...DEFAULT_SOURCE_PRIORITY.fields },
   }));
+  const [commerce, setCommerce] = useState<CommerceRatesConfig>(() =>
+    loadCommerceRates(),
+  );
   const [newSource, setNewSource] = useState("");
   const [fieldEdit, setFieldEdit] = useState<MetricField | "">("");
   const [savedHint, setSavedHint] = useState("");
 
   useEffect(() => {
     setConfig(loadSourcePriority());
+    setCommerce(loadCommerceRates());
   }, []);
 
   const known = useMemo(() => {
@@ -62,6 +80,13 @@ export function RulesDashboard() {
     setConfig(next);
     saveSourcePriority(next);
     setSavedHint("已保存，下次采集会按此优先级合并字段");
+    window.setTimeout(() => setSavedHint(""), 2500);
+  }
+
+  function persistCommerce(next: CommerceRatesConfig) {
+    setCommerce(next);
+    saveCommerceRates(next);
+    setSavedHint("已保存佣金/头程费率，生成行业报告时生效");
     window.setTimeout(() => setSavedHint(""), 2500);
   }
 
@@ -283,7 +308,110 @@ export function RulesDashboard() {
           </div>
         </section>
 
+        <section className="surface-panel space-y-4 rounded-2xl p-5">
+          <div>
+            <h2 className="text-base font-semibold">佣金与头程费率</h2>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              佣金暂定售价的 15%（后续可上传类目表覆盖）。头程默认 6 CNY/kg，可按运输方式分别改。
+            </p>
+          </div>
+          <div className="flex flex-wrap items-end gap-4">
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">佣金比例</span>
+              <Input
+                type="number"
+                min={0}
+                max={1}
+                step={0.01}
+                className="w-28"
+                value={commerce.commissionRate}
+                onChange={(event) =>
+                  persistCommerce({
+                    ...commerce,
+                    commissionRate: Number(event.target.value),
+                  })
+                }
+              />
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">默认头程方式</span>
+              <select
+                className="flex h-10 rounded-md border bg-background px-3 text-sm"
+                value={commerce.firstMileMode}
+                onChange={(event) =>
+                  persistCommerce({
+                    ...commerce,
+                    firstMileMode: event.target.value as FirstMileMode,
+                  })
+                }
+              >
+                {FIRST_MILE_MODES.map((mode) => (
+                  <option key={mode} value={mode}>
+                    {FIRST_MILE_MODE_LABEL[mode]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="text-muted-foreground">CNY→USD 汇率</span>
+              <Input
+                type="number"
+                min={0.1}
+                step={0.1}
+                className="w-28"
+                value={commerce.fxCnyPerUsd}
+                onChange={(event) =>
+                  persistCommerce({
+                    ...commerce,
+                    fxCnyPerUsd: Number(event.target.value),
+                  })
+                }
+              />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {FIRST_MILE_MODES.map((mode) => (
+              <label key={mode} className="space-y-1 text-sm">
+                <span className="text-muted-foreground">
+                  {FIRST_MILE_MODE_LABEL[mode]}（CNY/kg）
+                </span>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={commerce.firstMileRatesCnyPerKg[mode]}
+                  onChange={(event) =>
+                    persistCommerce({
+                      ...commerce,
+                      firstMileRatesCnyPerKg: {
+                        ...commerce.firstMileRatesCnyPerKg,
+                        [mode]: Number(event.target.value),
+                      },
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+
         <section className="space-y-4">
+          <div className="surface-panel rounded-2xl border border-primary/30 p-5 shadow-[0_0_0_1px_rgba(0,0,0,0.02)]">
+            <p className="text-xs tracking-[0.16em] text-primary/70 uppercase">
+              已启用 · 自动项目
+            </p>
+            <h2 className="mt-2 text-base font-semibold">
+              每日北京 09:00：采集 + 异动日报 + 行业报告
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              在项目详情勾选「自动项目」后纳入 Cron（
+              <code className="text-xs">/api/cron/daily-report</code>
+              ，Vercel <code className="text-xs">0 1 * * *</code> UTC = 北京 09:00）。
+              流程：MCP 采集 → 异动日报落库并推送 → 行业/优化报告落库并推送。手动「生成最新」仍可用。
+              推送依赖 <code className="text-xs">FEISHU_BOT_WEBHOOK</code> / 邮件 env；未配则 skip。
+            </p>
+          </div>
+
           <div className="surface-panel rounded-2xl p-5">
             <h2 className="text-base font-semibold">后续能力入口</h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">

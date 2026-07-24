@@ -22,5 +22,6 @@ alwaysApply: false
 
 ## 报告
 
-- `ReportCanonical`：异动日报（价/流量阈值）
-- `IndustryOptCanonical`：行业 / 行业+优化（另表 `industry_opt_reports`）
+- `ReportCanonical`：异动日报（价/流量阈值）— **不含**单位经济  
+- `IndustryOptCanonical`：行业 / 行业+优化（另表 `industry_opt_reports`）  
+- 单位经济：`unitEconomics` + 行业 `unitAvgPrice*`；费率 `commerceRates`（默认佣金 15%、头程五模式）；利润粗算缺项未扣；见 `01-contracts.md`
