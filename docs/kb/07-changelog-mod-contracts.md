@@ -87,3 +87,12 @@
 
 - `projects.auto_daily`；`PATCH` 可改；Cron 只跑勾选项目（采集+异动+行业）
 - 迁移：`drizzle/0002_auto_daily.sql`（`POST /api/admin/migrate`）
+
+## 2026-07-25 — Cron 鉴权
+
+- `GET /api/cron/daily-report`：`Bearer` 可为 `CRON_SECRET` 或 `ADMIN_TOKEN`
+- 生产域名：`https://asin-lens.tuneyas.com`
+
+## 2026-07-26 — Cron 失败告警
+
+- Cron 步骤失败 / 鉴权失败 / uncaught → 飞书短告警（不改表结构）

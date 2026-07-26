@@ -2,7 +2,9 @@
 
 ## 生成
 
-- Cron：`GET /api/cron/daily-report`（Vercel `0 1 * * *` UTC = **北京 09:00**；需 `CRON_SECRET`）  
+- Cron：`GET /api/cron/daily-report`（Vercel `0 1 * * *` UTC = **北京 09:00**）  
+  - 鉴权：`Authorization: Bearer` 匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`（Vercel 定时用前者；手测可用后者）  
+  - **失败告警**：鉴权失败 / 管线步骤失败（含部分采集 failures）/ 未捕获异常 → 飞书短告警（`cron-alert.ts` + `FEISHU_BOT_WEBHOOK`）；成功出报告仍走原推送  
 - **自动项目**（`projects.auto_daily`）：采集 → **异动日报** + **行业/优化报告** → 飞书/邮件  
   - 实现：`runAutoDailyPipeline`（`auto-daily.ts`）  
   - 异动：`generateDailyReportForProject`（报告日取上海当日，对照更早快照）  
@@ -10,6 +12,7 @@
   - `?mode=legacy`：旧行为，全项目只跑异动、不采集  
 - 异动阈值：价格 ≥5%，流量 ≥20%  
 - 非自动项目：不进 Cron；仍可手动采集 /「生成最新」  
+- 生产域名：`https://asin-lens.tuneyas.com`（勿用旧/预览 `*.vercel.app` 当主站）  
 
 ## 行业/优化报告（独立）
 

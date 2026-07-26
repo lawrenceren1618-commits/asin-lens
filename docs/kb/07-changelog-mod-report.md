@@ -26,8 +26,8 @@
 
 ## 工作区
 
-- 现役工程路径：`C:\Users\lawre\Desktop\asin-lens`（自 `.cursor\Cursor-skills\asin-lens` 迁出）  
-- 旧路径副本若仍存在，确认真源后再删，避免双份混淆  
+- 现役工程路径：`C:\Users\lawre\.cursor\Cursor-skills\asin-lens`  
+- 若仍有 Desktop 旧副本，确认真源后再删，避免双份混淆  
 
 ## 主要文件
 
@@ -59,3 +59,17 @@
 
 - `runAutoDailyPipeline`：仅 `auto_daily` 项目；采集 → 异动（当日）→ 行业 → 推送
 - Cron 默认走该管线；`?mode=legacy` 旧全量异动
+
+## 2026-07-25 — 生产日更哑火排查与 Cron 鉴权放宽
+
+- 根因：Vercel `DATABASE_URL` 曾错库；`CRON_SECRET` 与本地不一致 → 生产手调 Cron 401；北京 09:00 未写出当日快照/报告
+- 补跑：本机对共享库跑通 2026-07-25 table cloth（采集 2 + 日报 + 行业）
+- 代码：`/api/cron/daily-report` 接受 `CRON_SECRET` **或** `ADMIN_TOKEN` Bearer（`cad2abe`）
+- 生产主站：`asin-lens.tuneyas.com`；migrate 支持按语句拆分 / `only:0002`；缺列时可降级列表
+
+## 2026-07-26 — 验自动日更 + Cron 失败告警
+
+- **验收**：共享库 `table cloth`（`auto_daily=true`）验库时仅有 2026-07-25 快照×2 + 日报 + 行业；**无 07-26** 行；`job_runs` 最近成功采集亦止于 07-25 → 北京 09:00 生产 Cron 再次未写出当日数据（鉴权/超时/未触发待 Vercel 日志确认）
+- **补跑**：本机 `GET /api/cron/daily-report`（ADMIN_TOKEN）对共享库写出 2026-07-26：采集 2 + 日报 + 行业（`ok: true`）
+- **代码**：`cron-alert.ts` 汇总管线问题；Cron route 鉴权失败 / 步骤失败 / uncaught → 飞书短告警；单测 `cron-alert.test.ts`
+- 响应：`ok` 在有告警问题时为 `false`（仍返回各项目明细）
