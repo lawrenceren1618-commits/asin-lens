@@ -107,6 +107,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    console.error("[cron] uncaught", message);
     await alertCronFailure({ kind: "uncaught", error: message });
     return NextResponse.json(
       { ok: false, mode, error: message },

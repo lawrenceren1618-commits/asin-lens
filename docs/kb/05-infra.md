@@ -7,6 +7,8 @@
 - 初始化 SQL：`drizzle/0000_init.sql`  
 - 增量：`drizzle/0001_own_competitor.sql`（role / manual_cvr / keyword_traffic / industry_opt_reports）  
 - 辅助：`scripts/apply-schema.mjs`（按文件名顺序应用全部 `.sql`）  
+- `ensureAutoDailyColumn`：先查 `information_schema`；列已在则跳过 `ALTER`（pooler `:6543` 常拒 DDL）  
+- 增量 SQL 仍用 `POST /api/admin/migrate`（`ADMIN_TOKEN`），不要让 Cron 热路径依赖 DDL  
 
 **改表必须先行动计划，等「确认执行」。**
 

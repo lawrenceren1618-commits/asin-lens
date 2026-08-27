@@ -18,6 +18,7 @@
 - 生产域名：`https://asin-lens.tuneyas.com`（勿用旧/预览 `*.vercel.app` 当主站）  
 - 耗时：采集依赖 MCP，整段常 **数分钟**（Hobby 函数上限 300s）；DB 读不是主瓶颈  
 - Supabase 免费项目久未访问会 **Pause**，定时会写库失败；外出前需知 Restore / 或升级  
+- **Transaction pooler 常拒 DDL**：`ensureAutoDailyColumn` 先查 `information_schema`，列已在则不 `ALTER`；`listAutoDailyProjects` 不把 `ALTER` 当硬前置。否则 Cron 会在 ~1s 内 500（`Failed query: ALTER TABLE ... auto_daily`）  
 
 ## 行业/优化报告（独立）
 

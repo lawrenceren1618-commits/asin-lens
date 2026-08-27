@@ -81,3 +81,10 @@
 - **代码**：`runAutoDailyReportsOnly` + Cron `?mode=reports-only&date=`（漏日只补报告）
 - **运维**：建议 Vercel Cron Disable 以免双跑；Supabase 免费 Pause 仍须单独防
 - 补跑：8/12 本机全量成功；8/4–8/11 等缺口可按 reports-only 补
+
+## 2026-08-27 — 生产 Cron 500：pooler 拒 ALTER auto_daily
+
+- **现象**：GHA / 手测生产 `GET /api/cron/daily-report` 鉴权已通，约 0.6–4s 即 500；JSON `error` = `Failed query: ALTER TABLE projects ADD COLUMN IF NOT EXISTS auto_daily ...`
+- **根因**：`listAutoDailyProjects` 把 `ensureAutoDailyColumn()` 当硬前置；Transaction pooler 拒 DDL。列多半已在（8/12 本机全量成功），不必每次 ALTER
+- **代码**：`ensureAutoDailyColumn` 先查 `information_schema`，列在则跳过 ALTER；列表/详情/Cron 在 DDL 失败时仍 `SELECT auto_daily`
+- **未做**：未改 Vercel `DATABASE_URL`（用户当轮无法查看）。8/13–8/27 漏日等 Redeploy 后 GHA 手测通过再补

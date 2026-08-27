@@ -18,9 +18,13 @@ export async function listProjects() {
   const db = getDb();
   try {
     await ensureAutoDailyColumn();
+  } catch (error) {
+    console.error("[db] ensureAutoDailyColumn failed; listing projects anyway", error);
+  }
+  try {
     return await db.select().from(projects).orderBy(desc(projects.createdAt));
   } catch {
-    // Pooler/role may reject DDL; list without auto_daily until SQL is applied in Supabase.
+    // Column truly missing; list without auto_daily until SQL is applied in Supabase.
     const rows = await db
       .select({
         id: projects.id,
@@ -98,8 +102,15 @@ export async function updateProjectAutoDaily(
 }
 
 export async function listAutoDailyProjects() {
-  await ensureAutoDailyColumn();
   const db = getDb();
+  try {
+    await ensureAutoDailyColumn();
+  } catch (error) {
+    console.error(
+      "[db] ensureAutoDailyColumn failed; listing auto_daily anyway",
+      error,
+    );
+  }
   return db
     .select()
     .from(projects)
@@ -128,6 +139,10 @@ export async function getProject(projectId: string) {
   const db = getDb();
   try {
     await ensureAutoDailyColumn();
+  } catch (error) {
+    console.error("[db] ensureAutoDailyColumn failed; loading project anyway", error);
+  }
+  try {
     const [row] = await db
       .select()
       .from(projects)
