@@ -2,17 +2,22 @@
 
 ## 生成
 
-- Cron：`GET /api/cron/daily-report`（Vercel `0 1 * * *` UTC = **北京 09:00**）  
-  - 鉴权：`Authorization: Bearer` 匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`（Vercel 定时用前者；手测可用后者）  
+- Cron：`GET /api/cron/daily-report`（目标 **北京 09:00**）  
+  - **主调度（推荐）**：GitHub Actions `.github/workflows/daily-report.yml`（`0 1 * * *` UTC）；Secrets 配 `CRON_SECRET`；可 `workflow_dispatch` 手测  
+  - **Vercel Cron**：同路径同日程仍可配，Hobby 上曾多次无调用记录；建议以 Actions 为主，Vercel 侧可 Disable 以免双跑  
+  - 鉴权：`Authorization: Bearer` 匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`  
   - **失败告警**：鉴权失败 / 管线步骤失败（含部分采集 failures）/ 未捕获异常 → 飞书短告警（`cron-alert.ts` + `FEISHU_BOT_WEBHOOK`）；成功出报告仍走原推送  
+  - `?mode=reports-only&date=YYYY-MM-DD`：仅补指定日双报告（不采集；漏日回溯用）  
 - **自动项目**（`projects.auto_daily`）：采集 → **异动日报** + **行业/优化报告** → 飞书/邮件  
-  - 实现：`runAutoDailyPipeline`（`auto-daily.ts`）  
+  - 实现：`runAutoDailyPipeline`（`auto-daily.ts`）；漏日报告：`runAutoDailyReportsOnly`  
   - 异动：`generateDailyReportForProject`（报告日取上海当日，对照更早快照）  
   - 行业：`generateIndustryOptReport`（默认佣金/头程费率）  
   - `?mode=legacy`：旧行为，全项目只跑异动、不采集  
 - 异动阈值：价格 ≥5%，流量 ≥20%  
 - 非自动项目：不进 Cron；仍可手动采集 /「生成最新」  
 - 生产域名：`https://asin-lens.tuneyas.com`（勿用旧/预览 `*.vercel.app` 当主站）  
+- 耗时：采集依赖 MCP，整段常 **数分钟**（Hobby 函数上限 300s）；DB 读不是主瓶颈  
+- Supabase 免费项目久未访问会 **Pause**，定时会写库失败；外出前需知 Restore / 或升级  
 
 ## 行业/优化报告（独立）
 

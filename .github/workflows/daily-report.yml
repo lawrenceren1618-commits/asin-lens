@@ -1,0 +1,43 @@
+# 每天 UTC 01:00 ≈ 北京 09:00，触发生产自动日更（采集 + 双报告）。
+# 仓库 Secrets 须配置 CRON_SECRET（与 Vercel Production 的 CRON_SECRET 相同）。
+# 可在 Actions 页手动 Run workflow 试跑。
+name: daily-report
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call production daily-report cron
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "Missing GitHub Actions secret: CRON_SECRET"
+            exit 1
+          fi
+          # 管线含 MCP，可能数分钟；curl 等完整响应
+          curl -fsS -X GET \
+            --max-time 360 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "User-Agent: github-actions-asin-lens-daily-report" \
+            "https://asin-lens.tuneyas.com/api/cron/daily-report" \
+            -o /tmp/daily-report.json \
+            -w "\nhttp_status=%{http_code}\n"
+          head -c 2000 /tmp/daily-report.json || true
+          echo
+          python3 - <<'PY'
+          import json, sys
+          raw = open("/tmp/daily-report.json", encoding="utf-8").read()
+          data = json.loads(raw)
+          ok = data.get("ok")
+          print("ok=", ok, "reportDate=", data.get("reportDate"), "projectCount=", data.get("projectCount"))
+          if ok is False:
+              sys.exit(2)
+          PY

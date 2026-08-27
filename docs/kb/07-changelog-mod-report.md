@@ -73,3 +73,11 @@
 - **补跑**：本机 `GET /api/cron/daily-report`（ADMIN_TOKEN）对共享库写出 2026-07-26：采集 2 + 日报 + 行业（`ok: true`）
 - **代码**：`cron-alert.ts` 汇总管线问题；Cron route 鉴权失败 / 步骤失败 / uncaught → 飞书短告警；单测 `cron-alert.test.ts`
 - 响应：`ok` 在有告警问题时为 `false`（仍返回各项目明细）
+
+## 2026-08-12 — GitHub Actions 主调度 + 漏日 reports-only
+
+- **根因收窄**：Hobby Observability 多次无 Cron 调用；手补跑（本机）成功。用户确认 `DATABASE_URL` 无误后，主因视为 **Vercel Cron 未稳定触发**（非业务 SQL / 非「只有口头才写库」）
+- **主调度**：`.github/workflows/daily-report.yml`（`0 1 * * *` UTC + `workflow_dispatch`）打生产 `/api/cron/daily-report`；需 GitHub Secret `CRON_SECRET`
+- **代码**：`runAutoDailyReportsOnly` + Cron `?mode=reports-only&date=`（漏日只补报告）
+- **运维**：建议 Vercel Cron Disable 以免双跑；Supabase 免费 Pause 仍须单独防
+- 补跑：8/12 本机全量成功；8/4–8/11 等缺口可按 reports-only 补

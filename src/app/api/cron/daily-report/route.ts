@@ -5,8 +5,12 @@ import {
   collectAutoDailyIssues,
   formatCronFailureAlert,
 } from "@/lib/research/cron-alert";
-import { runAutoDailyPipeline } from "@/lib/research/auto-daily";
+import {
+  runAutoDailyPipeline,
+  runAutoDailyReportsOnly,
+} from "@/lib/research/auto-daily";
 import { generateDailyReports } from "@/lib/research/report";
+import { shanghaiDay } from "@/lib/time";
 
 export const runtime = "nodejs";
 /** 自动项目含 MCP 采集 + 双报告；Hobby 上限可能仍截断，Pro 建议 ≥300 */
@@ -57,6 +61,33 @@ export async function GET(request: Request) {
     if (mode === "legacy") {
       const outputs = await generateDailyReports();
       return NextResponse.json({ ok: true, mode: "legacy", outputs });
+    }
+
+    // 补跑漏日报告：mode=reports-only&date=YYYY-MM-DD（不采集）
+    if (mode === "reports-only") {
+      const reportDate =
+        url.searchParams.get("date")?.trim() || shanghaiDay(new Date());
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
+        return NextResponse.json(
+          { error: "date 须为 YYYY-MM-DD" },
+          { status: 400 },
+        );
+      }
+      const result = await runAutoDailyReportsOnly(reportDate);
+      const issues = collectAutoDailyIssues(result);
+      if (issues.length > 0) {
+        await alertCronFailure({
+          kind: "pipeline",
+          reportDate: result.reportDate,
+          issues,
+        });
+      }
+      return NextResponse.json({
+        ok: issues.length === 0,
+        mode: "reports-only",
+        alerted: issues.length > 0,
+        ...result,
+      });
     }
 
     const result = await runAutoDailyPipeline();

@@ -120,3 +120,72 @@ export async function runAutoDailyPipeline() {
     outputs,
   };
 }
+
+/**
+ * 仅补指定日双报告（不采集）。用于漏跑日回溯；无该日快照时异动可能为空。
+ */
+export async function runAutoDailyReportsOnly(reportDate: string) {
+  const autoProjects = await listAutoDailyProjects();
+  const outputs: AutoDailyProjectResult[] = [];
+
+  for (const project of autoProjects) {
+    const row: AutoDailyProjectResult = {
+      projectId: project.id,
+      projectName: project.name,
+      collect: { ok: true, count: 0, failures: 0 },
+      daily: { ok: false },
+      industry: { ok: false },
+    };
+
+    try {
+      const daily = await generateDailyReportForProject(project.id, reportDate);
+      row.daily = {
+        ok: true,
+        reportId: daily.reportId,
+        anomalyCount: daily.anomalyCount,
+        feishu: daily.feishu,
+        email: daily.email,
+      };
+    } catch (error) {
+      row.daily = {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+
+    try {
+      const industry = await generateIndustryOptReport(
+        project.id,
+        reportDate,
+        DEFAULT_COMMERCE_RATES,
+      );
+      const header = `[asin-lens] ${project.name} ${reportDate} 行业/优化报告（${industry.canonical.mode}）\n\n`;
+      const body = header + industry.markdown;
+      const feishu = await sendFeishuWebhook(body);
+      const email = await sendReportEmail({
+        subject: `[asin-lens] ${project.name} ${reportDate} 行业/优化报告`,
+        text: body,
+      });
+      row.industry = {
+        ok: true,
+        reportId: industry.report.id,
+        mode: industry.canonical.mode,
+        feishu,
+        email,
+      };
+    } catch (error) {
+      row.industry = {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+
+    outputs.push(row);
+  }
+
+  return {
+    reportDate,
+    projectCount: autoProjects.length,
+    outputs,
+  };
+}
