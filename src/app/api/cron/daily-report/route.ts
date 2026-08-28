@@ -10,6 +10,7 @@ import {
   runAutoDailyReportsOnly,
 } from "@/lib/research/auto-daily";
 import { generateDailyReports } from "@/lib/research/report";
+import { flattenQueryError } from "@/lib/db/query-result";
 import { shanghaiDay } from "@/lib/time";
 
 export const runtime = "nodejs";
@@ -106,7 +107,7 @@ export async function GET(request: Request) {
       ...result,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = flattenQueryError(error);
     console.error("[cron] uncaught", message);
     await alertCronFailure({ kind: "uncaught", error: message });
     return NextResponse.json(

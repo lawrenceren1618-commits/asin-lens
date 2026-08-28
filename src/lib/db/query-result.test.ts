@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { executeQueryRowCount } from "./query-result";
+import { executeQueryRowCount, flattenQueryError } from "./query-result";
 
 describe("executeQueryRowCount", () => {
   it("counts array rows", () => {
@@ -15,5 +15,16 @@ describe("executeQueryRowCount", () => {
 
   it("counts nested rows", () => {
     expect(executeQueryRowCount({ rows: [{ ok: 1 }, { ok: 1 }] })).toBe(2);
+  });
+});
+
+describe("flattenQueryError", () => {
+  it("joins Error.cause chain", () => {
+    const inner = new Error("column auto_daily does not exist");
+    const outer = new Error("Failed query: select auto_daily");
+    outer.cause = inner;
+    expect(flattenQueryError(outer)).toBe(
+      "Failed query: select auto_daily | column auto_daily does not exist",
+    );
   });
 });

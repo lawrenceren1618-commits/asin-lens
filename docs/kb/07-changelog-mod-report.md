@@ -26,7 +26,7 @@
 
 ## 工作区
 
-- 现役工程路径：`C:\Users\lawre\.cursor\Cursor-skills\asin-lens`  
+- 现役工程路径：`C:\cursor\Cursor skills\asin-lens`  
 - 若仍有 Desktop 旧副本，确认真源后再删，避免双份混淆  
 
 ## 主要文件
@@ -88,3 +88,21 @@
 - **根因**：`listAutoDailyProjects` 把 `ensureAutoDailyColumn()` 当硬前置；Transaction pooler 拒 DDL。列多半已在（8/12 本机全量成功），不必每次 ALTER
 - **代码**：`ensureAutoDailyColumn` 先查 `information_schema`，列在则跳过 ALTER；列表/详情/Cron 在 DDL 失败时仍 `SELECT auto_daily`
 - **未做**：未改 Vercel `DATABASE_URL`（用户当轮无法查看）。8/13–8/27 漏日等 Redeploy 后 GHA 手测通过再补
+
+## 2026-08-27 — 续：Pause 导致 Failed query（非缺列）
+
+- Redeploy `69694d7` 后 Cron 500 变为 `SELECT ... auto_daily`；`GET /api/projects` 降级 SELECT 也 503
+- 本机同一 `DATABASE_URL` 报 `(ENOTFOUND) tenant/user postgres.… not found` → **Supabase 免费 Pause**，不是「缺 auto_daily 列」
+- drizzle 只回 `Failed query`；GHA `curl -f` 不打印 body → 已入库 `flattenQueryError` + GHA 去 `-f`（见下条同日段）
+
+## 2026-08-28 — Restore 后日更验过；邮件通、飞书 webhook 未配
+
+- **8/27 22:52** GHA `#4` 手跑 success（`workflow_dispatch`）：快照+双报告 `2026-08-27`
+- **8/28 09:52** 自动写入 `2026-08-28` 快照×2 + 日报 + 行业（采集 `2/2`）。Actions **无** `schedule` 记录 → 更像 Vercel Cron（同 UTC 01:00，Hobby 晚点）
+- 邮件 `REPORT_EMAIL_TO` 已收到；`sent_feishu_at` 空：`FEISHU_BOT_WEBHOOK` 未配。App ID/Secret/Bitable **≠** 群通知（Bitable 只归档异动行）
+- 数据在 **Table Editor / public**（`asin_snapshots` / `daily_reports` / `industry_opt_reports`），不在 Storage
+- 可视化在站点项目页；邮件是 Markdown
+- 漏日 8/13–8/26 无快照，不能回放采集
+- 工程路径：`C:\cursor\Cursor skills\asin-lens`
+- **诊断上线**：`flattenQueryError`（cause 链）+ Cron/projects 错误回传；GHA 去掉 `curl -f`，非 200 仍打印 JSON
+- **暂缓**：飞书 webhook、关一边 Cron——先保任务完成；明日看是否双写再调（额度次要）

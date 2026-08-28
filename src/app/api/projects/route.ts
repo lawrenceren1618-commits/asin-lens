@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAuthorized } from "@/lib/auth";
+import { flattenQueryError } from "@/lib/db/query-result";
 import {
   createProject,
   listProjectNames,
@@ -12,7 +13,7 @@ import {
 export const runtime = "nodejs";
 
 function dbErrorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = flattenQueryError(error);
   if (/password authentication failed/i.test(message)) {
     return "数据库认证失败（密码或连接串不正确）。请到 Supabase → Project Settings → Database，复制 Transaction pooler 的 URI 整段粘贴到 .env.local 的 DATABASE_URL；若密码含 %、@、# 等字符，须已做 URL 编码。改完后重启 npm run dev。";
   }

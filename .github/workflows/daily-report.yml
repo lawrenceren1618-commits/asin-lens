@@ -22,22 +22,32 @@ jobs:
             echo "Missing GitHub Actions secret: CRON_SECRET"
             exit 1
           fi
-          # 管线含 MCP，可能数分钟；curl 等完整响应
-          curl -fsS -X GET \
+          # 不用 curl -f：500 时也要留下 JSON（含 drizzle cause）
+          set +e
+          http_code=$(curl -sS -X GET \
             --max-time 360 \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             -H "User-Agent: github-actions-asin-lens-daily-report" \
             "https://asin-lens.tuneyas.com/api/cron/daily-report" \
             -o /tmp/daily-report.json \
-            -w "\nhttp_status=%{http_code}\n"
-          head -c 2000 /tmp/daily-report.json || true
+            -w "%{http_code}")
+          curl_exit=$?
+          set -e
+          echo "http_status=${http_code} curl_exit=${curl_exit}"
+          head -c 4000 /tmp/daily-report.json || true
           echo
+          if [ "${http_code}" != "200" ]; then
+            echo "cron HTTP ${http_code}"
+            exit 1
+          fi
           python3 - <<'PY'
           import json, sys
           raw = open("/tmp/daily-report.json", encoding="utf-8").read()
           data = json.loads(raw)
           ok = data.get("ok")
           print("ok=", ok, "reportDate=", data.get("reportDate"), "projectCount=", data.get("projectCount"))
+          if data.get("error"):
+              print("error=", data.get("error")[:1500])
           if ok is False:
               sys.exit(2)
           PY

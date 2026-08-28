@@ -14,8 +14,10 @@
 
 ## 部署
 
-- Vercel：`vercel.json` Cron  
-- 密钥只在 `.env.local` / Vercel Env，勿提交  
+- Vercel：`vercel.json` Cron（与 GHA 同日程；Hobby 曾哑火，8/28 验到约 09:52 写入，更像 Vercel 触发）  
+- `DATABASE_URL`：Vercel Production 必须与本机 `.env.local` 指向同一 Postgres；**Pause** 会 `tenant/user not found`  
+- 现役工程：`C:\cursor\Cursor skills\asin-lens`  
+- 查数：Dashboard → **Table Editor** → `public`（不是 Storage）  
 
 ## 关键环境变量（见 `.env.example`）
 
