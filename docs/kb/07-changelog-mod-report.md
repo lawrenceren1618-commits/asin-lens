@@ -106,3 +106,9 @@
 - 工程路径：`C:\cursor\Cursor skills\asin-lens`
 - **诊断上线**：`flattenQueryError`（cause 链）+ Cron/projects 错误回传；GHA 去掉 `curl -f`，非 200 仍打印 JSON
 - **暂缓**：飞书 webhook、关一边 Cron——先保任务完成；明日看是否双写再调（额度次要）
+
+## 2026-08-31 — 关 GHA 定时，只留 Vercel Cron
+
+- 8/29–8/31 每天 **两次**全量：~09:43 Vercel 先写报告；下午 GHA `schedule` 再采并重发邮件
+- **保留** Vercel（最先、对准北京上午）；**关掉** GHA `on.schedule`，workflow 仍可手动 Run
+- 未改 `vercel.json` Cron；飞书 webhook / 异动归档另案

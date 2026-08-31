@@ -93,7 +93,7 @@ UI：`IssueChecklist`（可勾已处理）
 | CRUD | `/api/projects...` | 项目与 ASIN |
 | PATCH | `/api/projects/:id/asins/:asinId` | `{ role?, manualCvr60d?, note? }` |
 | POST | `/api/projects/:id/industry-opt-reports` | 生成行业/优化报告；可选 body `{ commerceRates }` |
-| GET | `/api/cron/daily-report` | 自动项目：采集+异动+行业+推送；`?mode=legacy` 仅异动；`?mode=reports-only&date=YYYY-MM-DD` 仅双报告；`Authorization: Bearer` 须匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`；步骤失败时飞书告警。主调度推荐 GitHub Actions（见 `04-report`） |
+| GET | `/api/cron/daily-report` | 自动项目：采集+异动+行业+推送；`?mode=legacy` 仅异动；`?mode=reports-only&date=YYYY-MM-DD` 仅双报告；`Authorization: Bearer` 须匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`；步骤失败时飞书告警。主调度：Vercel Cron；GHA 仅手测（见 `04-report`） |
 | POST | `/api/admin/migrate` | 幂等执行 `drizzle/0001` + `0002` |
 
 ## 核心表（语义）

@@ -3,8 +3,8 @@
 ## 生成
 
 - Cron：`GET /api/cron/daily-report`（目标 **北京 09:00**）  
-  - **主调度（推荐）**：GitHub Actions `.github/workflows/daily-report.yml`（`0 1 * * *` UTC）；Secrets 配 `CRON_SECRET`；可 `workflow_dispatch` 手测  
-  - **Vercel Cron**：同路径同日程仍可配，Hobby 上曾多次无调用记录；建议以 Actions 为主，Vercel 侧可 Disable 以免双跑  
+  - **主调度**：Vercel Cron（`vercel.json` `0 1 * * *` UTC）。Restore 后实测约 **09:43** 先写出当日快照+双报告（8/29–8/31）  
+  - **GHA**：`.github/workflows/daily-report.yml` **只留** `workflow_dispatch` 手测（Secrets `CRON_SECRET`）。曾与 Vercel 同日程，实际下午才跑（约 14:20–15:50），造成同日二采、邮件二次发送；已关定时  
   - 鉴权：`Authorization: Bearer` 匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`  
   - **失败告警**：鉴权失败 / 管线步骤失败（含部分采集 failures）/ 未捕获异常 → 飞书短告警（`cron-alert.ts` + `FEISHU_BOT_WEBHOOK`）；成功出报告仍走原推送  
   - `?mode=reports-only&date=YYYY-MM-DD`：仅补指定日双报告（不采集；漏日回溯用）  

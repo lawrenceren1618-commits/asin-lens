@@ -14,7 +14,8 @@
 
 ## 部署
 
-- Vercel：`vercel.json` Cron（与 GHA 同日程；Hobby 曾哑火，8/28 验到约 09:52 写入，更像 Vercel 触发）  
+- Vercel：`vercel.json` Cron 为日更主调度（UTC 01:00；Hobby 约 09:40–09:50 写出）。Hobby 暂停过会哑火，库 Pause 仍须 Restore  
+  - GHA `daily-report` 仅手动 Run，不定时（避免与 Vercel 双跑）  
 - `DATABASE_URL`：Vercel Production 必须与本机 `.env.local` 指向同一 Postgres；**Pause** 会 `tenant/user not found`  
 - 现役工程：`C:\cursor\Cursor skills\asin-lens`  
 - 查数：Dashboard → **Table Editor** → `public`（不是 Storage）  
