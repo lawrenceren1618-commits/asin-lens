@@ -12,7 +12,7 @@
 3. SellerSprite `keepa_info`（可选）→ FBA 费用 / 包装重尺寸 / 大类回退 → 写入 `rawRefs.listingExtras`  
 4. Sif `market_get_asin_keyword_signals`（`country` + `time_type=lately` + `time_value=7`）→ 主词与份额  
 5. Sif `ops_get_listing_traffic_overview`（`country` + `timePieceType=latelyDay`）→ 流量来源  
-6. `prepareMetricsForStorage`（含 `keywordTraffic` + `listingExtras`）→ Upsert `asin_snapshots`  
+6. `prepareMetricsForStorage`（含 `keywordTraffic` + `listingExtras`）→ Upsert `asin_snapshots`（`snapshot_date` = 美西已过完的一天）  
 7. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
 8. 更新 `asins.lastSyncedAt`  
 

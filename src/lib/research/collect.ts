@@ -27,7 +27,7 @@ import {
   parseSourcePriority,
   type SourcePriorityConfig,
 } from "@/lib/research/source-priority";
-import { shanghaiDay } from "@/lib/time";
+import { addCalendarDays, lastCompletedPacificDay } from "@/lib/time";
 
 export type { SnapshotMetrics };
 
@@ -143,7 +143,7 @@ async function collectOneAsin(
 
   // ingest → clean (by priority) → verify → only then write DB
   const { metrics, verify } = prepareMetricsForStorage(sources, priority);
-  const day = shanghaiDay(new Date());
+  const day = lastCompletedPacificDay(new Date());
   const now = new Date();
 
   await db
@@ -197,9 +197,7 @@ async function collectOneAsin(
         .where(eq(asinChangeLog.id, previous.id));
     } else {
       if (previous) {
-        const yesterday = new Date(`${day}T00:00:00+08:00`);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const end = shanghaiDay(yesterday);
+        const end = addCalendarDays(day, -1);
         if (end >= previous.effectiveFrom) {
           await db
             .update(asinChangeLog)

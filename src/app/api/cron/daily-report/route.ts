@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { flattenQueryError } from "@/lib/db/query-result";
+import { autoDailySnapshotsComplete } from "@/lib/db/queries";
 import { sendFeishuWebhook } from "@/lib/notify/feishu";
 import {
   collectAutoDailyIssues,
@@ -10,8 +12,11 @@ import {
   runAutoDailyReportsOnly,
 } from "@/lib/research/auto-daily";
 import { generateDailyReports } from "@/lib/research/report";
-import { flattenQueryError } from "@/lib/db/query-result";
-import { shanghaiDay } from "@/lib/time";
+import {
+  isPacificCronTwinSlot,
+  lastCompletedPacificDay,
+  pacificHourMinute,
+} from "@/lib/time";
 
 export const runtime = "nodejs";
 /** 自动项目含 MCP 采集 + 双报告；Hobby 上限可能仍截断，Pro 建议 ≥300 */
@@ -56,6 +61,9 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") ?? "auto";
+  const force = url.searchParams.get("force") === "1";
+  const now = new Date();
+  const dataDate = lastCompletedPacificDay(now);
 
   try {
     // 兼容：mode=legacy 仍对全部项目只跑异动日报（不采集）
@@ -67,7 +75,7 @@ export async function GET(request: Request) {
     // 补跑漏日报告：mode=reports-only&date=YYYY-MM-DD（不采集）
     if (mode === "reports-only") {
       const reportDate =
-        url.searchParams.get("date")?.trim() || shanghaiDay(new Date());
+        url.searchParams.get("date")?.trim() || dataDate;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
         return NextResponse.json(
           { error: "date 须为 YYYY-MM-DD" },
@@ -88,6 +96,25 @@ export async function GET(request: Request) {
         mode: "reports-only",
         alerted: issues.length > 0,
         ...result,
+      });
+    }
+
+    if (!force && isPacificCronTwinSlot(now)) {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: "wait_pacific_3am",
+        reportDate: dataDate,
+        pacificHour: pacificHourMinute(now).hour,
+      });
+    }
+
+    if (!force && (await autoDailySnapshotsComplete(dataDate))) {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: "already_collected",
+        reportDate: dataDate,
       });
     }
 

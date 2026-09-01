@@ -1,5 +1,5 @@
-# 自动日更主调度是 Vercel Cron（vercel.json，UTC 01:00 ≈ 北京 09:00）。
-# 本 workflow 只留手动 Run，避免下午再打一遍生产接口（双采、邮件发两次）。
+# 自动日更主调度是 Vercel Cron（vercel.json：UTC 10:00 夏令 / 11:00 冬令 ≈ 美西 03:00）。
+# 本 workflow 只留手动 Run。手测可加 ?force=1 以跳过冬令 02:00 槽位与已采短路。
 # 仓库 Secrets 须配置 CRON_SECRET（与 Vercel Production 的 CRON_SECRET 相同）。
 name: daily-report
 

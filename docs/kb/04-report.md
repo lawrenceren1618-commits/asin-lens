@@ -2,15 +2,16 @@
 
 ## 生成
 
-- Cron：`GET /api/cron/daily-report`（目标 **北京 09:00**）  
-  - **主调度**：Vercel Cron（`vercel.json` `0 1 * * *` UTC）。Restore 后实测约 **09:43** 先写出当日快照+双报告（8/29–8/31）  
-  - **GHA**：`.github/workflows/daily-report.yml` **只留** `workflow_dispatch` 手测（Secrets `CRON_SECRET`）。曾与 Vercel 同日程，实际下午才跑（约 14:20–15:50），造成同日二采、邮件二次发送；已关定时  
+- Cron：`GET /api/cron/daily-report`（目标 **美西 03:00**，抓取并标注 **已过完的美西前一天**）  
+  - **业务日**：`lastCompletedPacificDay`（`America/Los_Angeles` 日历日 − 1）。邮件主题、快照 `snapshot_date`、双报告 `report_date` 用它，不用北京日、不用邮箱显示时区  
+  - **主调度**：Vercel Cron 两条 UTC：`0 10 * * *`（夏令 = 美西 03:00）+ `0 11 * * *`（冬令 = 美西 03:00）。冬令 10:00 UTC 是美西 02:00 → 接口 `skipped: wait_pacific_3am`；同业务日已采齐 → `skipped: already_collected`。手测加 `?force=1`  
+  - **GHA**：`.github/workflows/daily-report.yml` **只留** `workflow_dispatch` 手测（Secrets `CRON_SECRET`）  
   - 鉴权：`Authorization: Bearer` 匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`  
   - **失败告警**：鉴权失败 / 管线步骤失败（含部分采集 failures）/ 未捕获异常 → 飞书短告警（`cron-alert.ts` + `FEISHU_BOT_WEBHOOK`）；成功出报告仍走原推送  
   - `?mode=reports-only&date=YYYY-MM-DD`：仅补指定日双报告（不采集；漏日回溯用）  
 - **自动项目**（`projects.auto_daily`）：采集 → **异动日报** + **行业/优化报告** → 飞书/邮件  
   - 实现：`runAutoDailyPipeline`（`auto-daily.ts`）；漏日报告：`runAutoDailyReportsOnly`  
-  - 异动：`generateDailyReportForProject`（报告日取上海当日，对照更早快照）  
+  - 异动：`generateDailyReportForProject`（报告日 = 美西已过完的一天，对照更早快照）  
   - 行业：`generateIndustryOptReport`（默认佣金/头程费率）  
   - `?mode=legacy`：旧行为，全项目只跑异动、不采集  
 - 异动阈值：价格 ≥5%，流量 ≥20%  

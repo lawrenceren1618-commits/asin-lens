@@ -11,7 +11,7 @@ import {
   prepareReportExport,
   type ReportAnomaly,
 } from "@/lib/research/report-format";
-import { shanghaiYesterday } from "@/lib/time";
+import { lastCompletedPacificDay } from "@/lib/time";
 
 function pctChange(previous: number | null, current: number | null) {
   if (previous === null || current === null || previous === 0) return null;
@@ -20,7 +20,7 @@ function pctChange(previous: number | null, current: number | null) {
 
 export async function generateDailyReportForProject(
   projectId: string,
-  reportDate = shanghaiYesterday(),
+  reportDate = lastCompletedPacificDay(),
 ) {
   const db = getDb();
   const project = await getProject(projectId);
@@ -141,7 +141,7 @@ export async function generateDailyReportForProject(
   };
 }
 
-export async function generateDailyReports(reportDate = shanghaiYesterday()) {
+export async function generateDailyReports(reportDate = lastCompletedPacificDay()) {
   const allProjects = await listProjects();
   const outputs = [];
   for (const project of allProjects) {

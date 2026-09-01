@@ -118,6 +118,32 @@ export async function listAutoDailyProjects() {
     .orderBy(desc(projects.createdAt));
 }
 
+/** True when every ASIN on every auto_daily project already has a snapshot that date. */
+export async function autoDailySnapshotsComplete(reportDate: string) {
+  const projects = await listAutoDailyProjects();
+  if (projects.length === 0) return false;
+  const db = getDb();
+  let asinCount = 0;
+  for (const project of projects) {
+    const rows = await listProjectAsins(project.id);
+    for (const asin of rows) {
+      asinCount += 1;
+      const [snap] = await db
+        .select({ id: asinSnapshots.id })
+        .from(asinSnapshots)
+        .where(
+          and(
+            eq(asinSnapshots.asinId, asin.id),
+            eq(asinSnapshots.snapshotDate, reportDate),
+          ),
+        )
+        .limit(1);
+      if (!snap) return false;
+    }
+  }
+  return asinCount > 0;
+}
+
 /** 删除尚无任何 ASIN 的空壳项目（级联清关联表）。 */
 export async function deleteProjectsWithoutAsins() {
   const db = getDb();

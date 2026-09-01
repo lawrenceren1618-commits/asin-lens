@@ -112,3 +112,9 @@
 - 8/29–8/31 每天 **两次**全量：~09:43 Vercel 先写报告；下午 GHA `schedule` 再采并重发邮件
 - **保留** Vercel（最先、对准北京上午）；**关掉** GHA `on.schedule`，workflow 仍可手动 Run
 - 未改 `vercel.json` Cron；飞书 webhook / 异动归档另案
+
+## 2026-09-01 — 业务日改为美西昨日；Cron 美西 03:00（冬夏令）
+
+- 快照 / 双报告 / 邮件主题：`lastCompletedPacificDay`（洛杉矶日历 − 1），不再用上海「当天」
+- Vercel：`0 10 * * *` + `0 11 * * *` UTC；冬令 02:00 槽短路；同日已采齐则 skip。GHA 仍只手测（`?force=1`）
+- 历史上海日标的行不迁移；撞日则按唯一键覆盖

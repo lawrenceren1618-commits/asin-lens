@@ -93,16 +93,16 @@ UI：`IssueChecklist`（可勾已处理）
 | CRUD | `/api/projects...` | 项目与 ASIN |
 | PATCH | `/api/projects/:id/asins/:asinId` | `{ role?, manualCvr60d?, note? }` |
 | POST | `/api/projects/:id/industry-opt-reports` | 生成行业/优化报告；可选 body `{ commerceRates }` |
-| GET | `/api/cron/daily-report` | 自动项目：采集+异动+行业+推送；`?mode=legacy` 仅异动；`?mode=reports-only&date=YYYY-MM-DD` 仅双报告；`Authorization: Bearer` 须匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`；步骤失败时飞书告警。主调度：Vercel Cron；GHA 仅手测（见 `04-report`） |
+| GET | `/api/cron/daily-report` | 自动项目：采集+异动+行业+推送；快照/报告日 = 美西已过完的一天；`?mode=legacy` 仅异动；`?mode=reports-only&date=` 仅双报告；`?force=1` 跳过冬令 02:00 槽与已采短路。`Authorization: Bearer` 须匹配 `CRON_SECRET` **或** `ADMIN_TOKEN`。主调度：Vercel 美西 03:00；GHA 仅手测（见 `04-report`） |
 | POST | `/api/admin/migrate` | 幂等执行 `drizzle/0001` + `0002` |
 
 ## 核心表（语义）
 
 - `projects`（含 `auto_daily`：自动项目日更） / `asins`（含 `role`, `manual_cvr_60d`）  
-- `asin_snapshots`：按日规范快照 + `keyword_traffic` + `raw_refs`  
+- `asin_snapshots`：按 **美西已过完的一天** 规范快照 + `keyword_traffic` + `raw_refs`  
 - `asin_change_log`：变化区间  
-- `daily_reports`：异动日报  
-- `industry_opt_reports`：行业/优化报告（`mode` + `payload` + `summary_md`）  
+- `daily_reports`：异动日报（`report_date` 与快照业务日相同）  
+- `industry_opt_reports`：行业/优化报告（`mode` + `payload` + `summary_md`，同业务日）  
 - `job_runs`：任务状态  
 
 Schema 真源：`src/lib/db/schema.ts`、`drizzle/0000_init.sql`、`drizzle/0001_own_competitor.sql`、`drizzle/0002_auto_daily.sql`

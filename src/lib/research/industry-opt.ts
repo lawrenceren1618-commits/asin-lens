@@ -26,7 +26,7 @@ import {
   emptyListingExtras,
   type ListingExtras,
 } from "@/lib/research/unit-economics";
-import { shanghaiDay } from "@/lib/time";
+import { lastCompletedPacificDay } from "@/lib/time";
 
 function median(values: number[]): number | null {
   if (values.length === 0) return null;
@@ -217,7 +217,7 @@ function trafficNote(
 
 export async function generateIndustryOptReport(
   projectId: string,
-  reportDate = shanghaiDay(new Date()),
+  reportDate = lastCompletedPacificDay(),
   ratesInput?: unknown,
 ) {
   const rates = parseCommerceRates(ratesInput ?? DEFAULT_COMMERCE_RATES);

@@ -401,13 +401,14 @@ export function RulesDashboard() {
               已启用 · 自动项目
             </p>
             <h2 className="mt-2 text-base font-semibold">
-              每日北京 09:00：采集 + 异动日报 + 行业报告
+              每日美西 03:00：采集 + 异动日报 + 行业报告
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               在项目详情勾选「自动项目」后纳入 Cron（
               <code className="text-xs">/api/cron/daily-report</code>
-              ，Vercel <code className="text-xs">0 1 * * *</code> UTC = 北京 09:00）。
-              流程：MCP 采集 → 异动日报落库并推送 → 行业/优化报告落库并推送。手动「生成最新」仍可用。
+              ）。Vercel 在 UTC 10:00（夏令）/ 11:00（冬令）触发，约等于美西凌晨 3 点；写出的日期是
+              <strong>已经过完的美西前一天</strong>
+              ，不是北京日历、也不是邮箱显示时区。流程：MCP 采集 → 异动日报落库并推送 → 行业/优化报告落库并推送。手动「生成最新」仍可用。
               推送依赖 <code className="text-xs">FEISHU_BOT_WEBHOOK</code> / 邮件 env；未配则 skip。
             </p>
           </div>

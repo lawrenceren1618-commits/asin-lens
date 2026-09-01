@@ -652,7 +652,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
       setAutoDaily(Boolean(data.project.autoDaily));
       setMessage(
         data.project.autoDaily
-          ? "已设为自动项目：每日北京 09:00 采集 + 异动日报 + 行业报告并推送"
+          ? "已设为自动项目：每日美西 03:00 采集（标注已过完的美西前一天）+ 异动日报 + 行业报告并推送"
           : "已关闭自动日更（仅手动采集/生成）",
       );
     } catch (err) {

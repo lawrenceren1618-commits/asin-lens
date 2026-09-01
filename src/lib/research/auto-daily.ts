@@ -7,7 +7,7 @@ import { collectProject } from "@/lib/research/collect";
 import { DEFAULT_COMMERCE_RATES } from "@/lib/research/commerce-rates";
 import { generateIndustryOptReport } from "@/lib/research/industry-opt";
 import { generateDailyReportForProject } from "@/lib/research/report";
-import { shanghaiDay } from "@/lib/time";
+import { lastCompletedPacificDay } from "@/lib/time";
 
 export type AutoDailyProjectResult = {
   projectId: string;
@@ -37,11 +37,11 @@ export type AutoDailyProjectResult = {
 };
 
 /**
- * 自动项目日更：采集 → 异动日报（今日）→ 行业报告 → 推送。
+ * 自动项目日更：采集 → 异动日报（美西已过完的一天）→ 行业报告 → 推送。
  * 仅处理 projects.auto_daily = true。
  */
 export async function runAutoDailyPipeline() {
-  const reportDate = shanghaiDay(new Date());
+  const reportDate = lastCompletedPacificDay(new Date());
   const autoProjects = await listAutoDailyProjects();
   const outputs: AutoDailyProjectResult[] = [];
 

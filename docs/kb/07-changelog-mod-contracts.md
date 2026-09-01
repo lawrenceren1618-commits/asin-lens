@@ -96,3 +96,7 @@
 ## 2026-07-26 — Cron 失败告警
 
 - Cron 步骤失败 / 鉴权失败 / uncaught → 飞书短告警（不改表结构）
+
+## 2026-09-01 — 报告日 = 美西昨日
+
+- 快照与双报告 `report_date` 使用 `lastCompletedPacificDay`；Cron 美西 03:00（UTC 10/11）
