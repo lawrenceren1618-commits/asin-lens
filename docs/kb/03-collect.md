@@ -13,7 +13,7 @@
 4. Sif `market_get_asin_keyword_signals`（`country` + `time_type=lately` + `time_value=7`）→ 主词与份额  
 5. Sif `ops_get_listing_traffic_overview`（`country` + `timePieceType=latelyDay`）→ 流量来源  
 6. `prepareMetricsForStorage`（含 `keywordTraffic` + `listingExtras`）→ Upsert `asin_snapshots`（`snapshot_date` = 美西已过完的一天）  
-7. 有变化则写/延展 `asin_change_log`，并尝试飞书归档  
+7. 写/延展 `asin_change_log`（决策：`planChangeLogWrite`）：无变化则延展 `effectiveTo`；同日重采有变化则原地更新；**上一笔 `effectiveTo` 早于业务日且有变化 → 旧段不动、插新行**，再尝试飞书归档  
 8. 更新 `asins.lastSyncedAt`  
 
 能力边界（禁止臆造字段）：
@@ -35,6 +35,7 @@
 
 `src/lib/research/metrics.test.ts` — 清洗、优先级、核对拒绝空数据  
 `src/lib/research/unit-economics.test.ts` — 装量/单个均价/佣金/头程/利润粗算  
+`src/lib/research/change-log.test.ts` — 缺口日后有变化须插新异动行  
 
 ## 建议分支
 

@@ -22,7 +22,7 @@
 - **Transaction pooler 常拒 DDL**：`ensureAutoDailyColumn` 先查 `information_schema`，列已在则不 `ALTER`；`listAutoDailyProjects` 不把 `ALTER` 当硬前置。否则 Cron 会在 ~1s 内 500（`Failed query: ALTER TABLE ... auto_daily`）  
 - GHA `daily-report` **不要** `curl -f`：非 200 也要打印响应 JSON（含 `flattenQueryError` 的 postgres cause）  
 - Production `DATABASE_URL` 必须与本机 `.env.local` 同一库；连错库或 **Supabase Pause** 时普通 SELECT 也会 Failed query  
-- **飞书两条线**：`FEISHU_BOT_WEBHOOK` = 群自定义机器人推报告/告警；`FEISHU_APP_ID` / `SECRET` / `BITABLE` = 采集异动写入多维表格。未配 webhook 则 skip（`sent_feishu_at` 空）  
+- **飞书两条线**：`FEISHU_BOT_WEBHOOK` = 群自定义机器人推报告/告警；`FEISHU_APP_ID` / `SECRET` / `BITABLE` = 采集异动写入多维表格。未配 webhook 则 skip（`sent_feishu_at` 空）。Bitable 只在 **新插入** `asin_change_log` 时追加；缺口日后指标有变化必须插新行（勿走空分支）  
 - 邮件：`ZOHO_SMTP_*` + `REPORT_EMAIL_TO`；主题 `[asin-lens] …`。可视化看站点项目页，邮件是 Markdown  
 - 落库查 **Table Editor → public**（`daily_reports` 等），不要看 Storage  
 

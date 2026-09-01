@@ -16,7 +16,8 @@ Sif 边界：`docs/vendor/sif-mcp/sif-mcp-tool-schema.json`
 3. SS `keepa_info`（可选）→ FBA / 包装重 → `rawRefs.listingExtras`；趋势数组勿覆盖标量售价  
 4. Sif `market_get_asin_keyword_signals`（`country`，`time_type=lately`，`time_value=7`）  
 5. Sif `ops_get_listing_traffic_overview`（`country`，`timePieceType=latelyDay`）  
-6. clean → verify → 写 `asin_snapshots`（含 `keyword_traffic` + `listingExtras`；日期 = 美西已过完的一天）
+6. clean → verify → 写 `asin_snapshots`（含 `keyword_traffic` + `listingExtras`；日期 = 美西已过完的一天）  
+7. `planChangeLogWrite`：缺口日后有变化 → 旧段不动、插新 `asin_change_log`
 
 Sif **无** `asin_detail`。入参用 **`country`**，勿传 `marketplace`。
 

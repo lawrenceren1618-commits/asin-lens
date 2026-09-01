@@ -27,7 +27,8 @@ import {
   parseSourcePriority,
   type SourcePriorityConfig,
 } from "@/lib/research/source-priority";
-import { addCalendarDays, lastCompletedPacificDay } from "@/lib/time";
+import { planChangeLogWrite } from "@/lib/research/change-log";
+import { lastCompletedPacificDay } from "@/lib/time";
 
 export type { SnapshotMetrics };
 
@@ -179,61 +180,61 @@ async function collectOneAsin(
     });
 
   const previous = await getPreviousChange(asin.id);
-  if (changed(previous, metrics)) {
-    if (previous && previous.effectiveTo < day) {
-      // keep previous range as-is
-    } else if (previous && previous.effectiveTo === day) {
-      await db
-        .update(asinChangeLog)
-        .set({
-          title: metrics.title || null,
-          price: metrics.price === null ? null : String(metrics.price),
-          sales: metrics.sales,
-          rank: metrics.rank,
-          cart: metrics.cart || null,
-          traffic: metrics.traffic === null ? null : String(metrics.traffic),
-          topKeywords: metrics.topKeywords,
-        })
-        .where(eq(asinChangeLog.id, previous.id));
-    } else {
-      if (previous) {
-        const end = addCalendarDays(day, -1);
-        if (end >= previous.effectiveFrom) {
-          await db
-            .update(asinChangeLog)
-            .set({ effectiveTo: end })
-            .where(eq(asinChangeLog.id, previous.id));
+  const metricFields = {
+    title: metrics.title || null,
+    price: metrics.price === null ? null : String(metrics.price),
+    sales: metrics.sales,
+    rank: metrics.rank,
+    cart: metrics.cart || null,
+    traffic: metrics.traffic === null ? null : String(metrics.traffic),
+    topKeywords: metrics.topKeywords,
+  };
+  const decision = planChangeLogWrite({
+    day,
+    changed: changed(previous, metrics),
+    previous: previous
+      ? {
+          id: previous.id,
+          effectiveFrom: previous.effectiveFrom,
+          effectiveTo: previous.effectiveTo,
         }
-      }
+      : null,
+  });
 
-      const [log] = await db
-        .insert(asinChangeLog)
-        .values({
-          asinId: asin.id,
-          effectiveFrom: day,
-          effectiveTo: day,
-          title: metrics.title || null,
-          price: metrics.price === null ? null : String(metrics.price),
-          sales: metrics.sales,
-          rank: metrics.rank,
-          cart: metrics.cart || null,
-          traffic: metrics.traffic === null ? null : String(metrics.traffic),
-          topKeywords: metrics.topKeywords,
-        })
-        .returning();
-
-      await syncChangeToFeishu({
-        projectId: asin.projectId,
-        asin: asin.asin,
-        market: asin.market,
-        log,
-      }).catch(() => undefined);
-    }
-  } else if (previous) {
+  if (decision.type === "extend") {
     await db
       .update(asinChangeLog)
-      .set({ effectiveTo: day })
-      .where(eq(asinChangeLog.id, previous.id));
+      .set({ effectiveTo: decision.effectiveTo })
+      .where(eq(asinChangeLog.id, decision.previousId));
+  } else if (decision.type === "update_in_place") {
+    await db
+      .update(asinChangeLog)
+      .set(metricFields)
+      .where(eq(asinChangeLog.id, decision.previousId));
+  } else if (decision.type === "insert") {
+    if (decision.closePrevious) {
+      await db
+        .update(asinChangeLog)
+        .set({ effectiveTo: decision.closePrevious.effectiveTo })
+        .where(eq(asinChangeLog.id, decision.closePrevious.id));
+    }
+
+    const [log] = await db
+      .insert(asinChangeLog)
+      .values({
+        asinId: asin.id,
+        effectiveFrom: day,
+        effectiveTo: day,
+        ...metricFields,
+      })
+      .returning();
+
+    await syncChangeToFeishu({
+      projectId: asin.projectId,
+      asin: asin.asin,
+      market: asin.market,
+      log,
+    }).catch(() => undefined);
   }
 
   await db
